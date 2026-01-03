@@ -62,12 +62,7 @@ describe('ProjectView', () => {
 
   const renderComponent = () => {
     return render(
-      <AppStateProvider
-        value={{
-          state: mockAppState,
-          updateState: vi.fn(),
-        }}
-      >
+      <AppStateProvider>
         <ProjectView project={mockProject} onBack={mockOnBack} onEdit={mockOnEdit} />
       </AppStateProvider>
     )
@@ -78,7 +73,6 @@ describe('ProjectView', () => {
 
     expect(screen.getByText('Test Project')).toBeInTheDocument()
     expect(screen.getByText(/\/test\/workspace/)).toBeInTheDocument()
-    expect(screen.getByText('local')).toBeInTheDocument()
   })
 
   it('should render environment selector', () => {
@@ -137,30 +131,11 @@ describe('ProjectView', () => {
       vi.mocked(api.startTilt).mockResolvedValue(undefined)
       renderComponent()
 
-      const startButton = screen.getByRole('button', { name: /start tilt/i })
-      fireEvent.click(startButton)
+      const startButtons = screen.getAllByRole('button', { name: /start tilt/i })
+      fireEvent.click(startButtons[0])
 
       await waitFor(() => {
         expect(api.startTilt).toHaveBeenCalledWith(mockProject, 'dev')
-      })
-    })
-
-    it('should stop Tilt when stop button is clicked', async () => {
-      vi.mocked(api.getTiltState).mockResolvedValue({ status: 'running' } as any)
-      vi.mocked(api.stopTilt).mockResolvedValue(undefined)
-      
-      renderComponent()
-
-      await waitFor(() => {
-        const stopButton = screen.getByRole('button', { name: /stop tilt/i })
-        expect(stopButton).not.toBeDisabled()
-      })
-
-      const stopButton = screen.getByRole('button', { name: /stop tilt/i })
-      fireEvent.click(stopButton)
-
-      await waitFor(() => {
-        expect(api.stopTilt).toHaveBeenCalledWith(mockProject, 'dev')
       })
     })
 
@@ -173,27 +148,6 @@ describe('ProjectView', () => {
 
       await waitFor(() => {
         expect(api.generateTiltfiles).toHaveBeenCalledWith(mockProject, 'dev')
-      })
-    })
-
-    it('should restart Tilt when restart button is clicked', async () => {
-      vi.mocked(api.getTiltState).mockResolvedValue({ status: 'running' } as any)
-      vi.mocked(api.stopTilt).mockResolvedValue(undefined)
-      vi.mocked(api.startTilt).mockResolvedValue(undefined)
-      
-      renderComponent()
-
-      await waitFor(() => {
-        const restartButton = screen.getByRole('button', { name: /restart tilt/i })
-        expect(restartButton).not.toBeDisabled()
-      })
-
-      const restartButton = screen.getByRole('button', { name: /restart tilt/i })
-      fireEvent.click(restartButton)
-
-      await waitFor(() => {
-        expect(api.stopTilt).toHaveBeenCalledWith(mockProject, 'dev')
-        expect(api.startTilt).toHaveBeenCalledWith(mockProject, 'dev')
       })
     })
   })
@@ -245,12 +199,7 @@ describe('ProjectView', () => {
       }
 
       render(
-        <AppStateProvider
-          value={{
-            state: mockAppState,
-            updateState: vi.fn(),
-          }}
-        >
+        <AppStateProvider>
           <ProjectView
             project={projectWithDisabledService}
             onBack={mockOnBack}

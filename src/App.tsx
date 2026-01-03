@@ -1,20 +1,27 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import LandingScreen from './components/LandingScreen';
 import CreateProjectForm from './components/CreateProjectForm';
 import ProjectView from './components/ProjectView';
 import ProjectManagement from './components/ProjectManagement';
 import Settings from './components/Settings';
+import About from './components/About';
 import { ThemeProvider } from './components/ThemeProvider';
 import ThemeToggle from './components/ThemeToggle';
 import { Project } from './types/project';
 import { openProject } from './api';
 import { AppStateProvider } from './providers/appstate-provider';
+import { invoke } from '@tauri-apps/api/core';
 
-type Screen = 'landing' | 'create-project' | 'project-view' | 'project-management' | 'settings';
+type Screen = 'landing' | 'create-project' | 'project-view' | 'project-management' | 'settings' | 'about';
 
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>('landing');
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
+
+  useEffect(() => {
+    // Close splashscreen when React app is ready
+    invoke('close_splashscreen').catch(console.error);
+  }, []);
 
   const handleCreateProject = () => {
     setCurrentScreen('create-project');
@@ -52,6 +59,10 @@ function App() {
     setCurrentScreen('settings');
   };
 
+  const handleOpenAbout = () => {
+    setCurrentScreen('about');
+  };
+
   const handleBackToLanding = () => {
     setCurrentScreen('landing');
     setCurrentProject(null);
@@ -60,37 +71,43 @@ function App() {
   return (
     <AppStateProvider>
       <ThemeProvider>
-        <ThemeToggle />
-        {currentScreen === 'landing' && (
-          <LandingScreen
-            onCreateProject={handleCreateProject}
-            onOpenProject={handleOpenProject}
-            onOpenSettings={handleOpenSettings}
-          />
-        )}
-        {currentScreen === 'create-project' && (
-          <CreateProjectForm
-            onBack={handleBackToLanding}
-            onProjectCreated={handleProjectCreated}
-          />
-        )}
-        {currentScreen === 'settings' && (
-          <Settings onBack={handleBackToLanding} />
-        )}
-        {currentScreen === 'project-view' && currentProject && (
-          <ProjectView
-            project={currentProject}
-            onBack={handleBackToLanding}
-            onEdit={handleEditProject}
-          />
-        )}
-        {currentScreen === 'project-management' && currentProject && (
-          <ProjectManagement
-            project={currentProject}
-            onBack={handleBackToLanding}
-            onSave={handleProjectSaved}
-          />
-        )}
+        <div className="overflow-y-auto">
+          <ThemeToggle />
+          {currentScreen === 'landing' && (
+            <LandingScreen
+              onCreateProject={handleCreateProject}
+              onOpenProject={handleOpenProject}
+              onOpenSettings={handleOpenSettings}
+              onOpenAbout={handleOpenAbout}
+            />
+          )}
+          {currentScreen === 'create-project' && (
+            <CreateProjectForm
+              onBack={handleBackToLanding}
+              onProjectCreated={handleProjectCreated}
+            />
+          )}
+          {currentScreen === 'settings' && (
+            <Settings onBack={handleBackToLanding} />
+          )}
+          {currentScreen === 'about' && (
+            <About onBack={handleBackToLanding} />
+          )}
+          {currentScreen === 'project-view' && currentProject && (
+            <ProjectView
+              project={currentProject}
+              onBack={handleBackToLanding}
+              onEdit={handleEditProject}
+            />
+          )}
+          {currentScreen === 'project-management' && currentProject && (
+            <ProjectManagement
+              project={currentProject}
+              onBack={handleBackToLanding}
+              onSave={handleProjectSaved}
+            />
+          )}
+        </div>
       </ThemeProvider>
     </AppStateProvider>
   );

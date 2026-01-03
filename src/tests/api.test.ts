@@ -26,7 +26,7 @@ describe('API Functions', () => {
       workspace_path: '/test/workspace',
       services_path: 'repos',
       tilt: {
-        mode: 'local',
+        mode: 'root',
       },
     },
     environments: {
@@ -152,7 +152,7 @@ describe('API Functions', () => {
         const result = await getTiltState(mockProject, 'dev')
 
         expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'getTiltState',
+          command: 'reconcileTiltState',
           args: {
             project: mockProject,
             env: 'dev',
@@ -174,7 +174,7 @@ describe('API Functions', () => {
           args: {
             project: mockProject,
             env: 'dev',
-            limit: 500,
+            lines: undefined,
           },
         })
         expect(result).toEqual(mockLogs)
@@ -191,7 +191,7 @@ describe('API Functions', () => {
           args: {
             project: mockProject,
             env: 'dev',
-            limit: 100,
+            lines: 100,
           },
         })
       })

@@ -129,6 +129,7 @@ export default function ProjectView({ project, onBack, onEdit }: ProjectViewProp
             applyTerminalAutoScroll();
         } catch (error) {
             console.error('Failed to fetch logs:', error);
+            await message('Unable to fetch tilt logs', { title: "Tilt Orchestrator" })
         }
     };
 
@@ -136,7 +137,7 @@ export default function ProjectView({ project, onBack, onEdit }: ProjectViewProp
         try {
             await openUrl(titleWebUi);
         } catch (err) {
-            await message('Opening Tilt Web Ui failed', { title: "Tilt Web UI" })
+            await message('Opening Tilt Web Ui failed', { title: "Tilt Orchestrator" })
         }
     }
 
@@ -146,6 +147,7 @@ export default function ProjectView({ project, onBack, onEdit }: ProjectViewProp
             await generateTiltfiles(project, selectedEnv);
         } catch (error) {
             console.error('Failed to update Tiltfiles:', error);
+            await message('Failed to update Tiltfiles', { title: "Tilt Orchestrator" })
         } finally {
             setIsUpdatingTiltfiles(false);
         }
@@ -208,7 +210,6 @@ export default function ProjectView({ project, onBack, onEdit }: ProjectViewProp
     }, [terminalAutoScroll]);
 
     useEffect(() => {
-        console.log(titleWebUi, tiltStatus, tiltLogs.length)
         if (!titleWebUi && tiltStatus === 'running' && tiltLogs.length) {
             const tiltInfoLine = tiltLogs[0]
             const match = tiltInfoLine.match(/https?:\/\/\S+/);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
+import { message, open } from '@tauri-apps/plugin-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -37,6 +37,7 @@ export default function CreateProjectForm({ onBack, onProjectCreated }: CreatePr
       }
     } catch (error) {
       console.error('Failed to select workspace:', error);
+      await message('Failed to select workspace', { title: "Tilt Orchestrator" })
     }
   };
 
@@ -64,6 +65,7 @@ export default function CreateProjectForm({ onBack, onProjectCreated }: CreatePr
     } catch (error: any) {
       setError(error?.toString() || 'Failed to create project');
       console.error('Failed to create project:', error);
+      await message('Failed to create project', { title: "Tilt Orchestrator" })
     } finally {
       setLoading(false);
     }

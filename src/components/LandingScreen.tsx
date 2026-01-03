@@ -4,7 +4,7 @@ import { open } from '@tauri-apps/plugin-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Checkbox } from './ui/checkbox';
-import { FolderOpen, Plus, Clock, Settings } from 'lucide-react';
+import { FolderOpen, Plus, Clock, Settings, Info } from 'lucide-react';
 import { AppState, RecentProject } from '@/types/app';
 import { useAppState } from '@/providers/appstate-provider';
 
@@ -12,9 +12,10 @@ interface LandingScreenProps {
     onCreateProject: () => void;
     onOpenProject: (path: string, name: string) => void;
     onOpenSettings: () => void;
+    onOpenAbout: () => void;
 }
 
-export default function LandingScreen({ onCreateProject, onOpenProject, onOpenSettings }: LandingScreenProps) {
+export default function LandingScreen({ onCreateProject, onOpenProject, onOpenSettings, onOpenAbout }: LandingScreenProps) {
     const [appState, setAppState] = useState<AppState | null>(null);
     const [autoOpen, setAutoOpen] = useState(false);
     const { state: contextState, setAppState: setState } = useAppState();
@@ -111,7 +112,11 @@ export default function LandingScreen({ onCreateProject, onOpenProject, onOpenSe
             <div className="max-w-4xl mx-auto space-y-8">
                 {/* Header */}
                 <div className="text-center space-y-2">
-                    <div className="flex justify-end mb-4">
+                    <div className="flex justify-end gap-2 mb-4">
+                        <Button variant="ghost" size="sm" onClick={onOpenAbout}>
+                            <Info className="h-4 w-4 mr-2" />
+                            About
+                        </Button>
                         <Button variant="ghost" size="sm" onClick={onOpenSettings}>
                             <Settings className="h-4 w-4 mr-2" />
                             Settings

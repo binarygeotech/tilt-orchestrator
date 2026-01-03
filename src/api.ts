@@ -99,13 +99,13 @@ export async function restartTilt(project: Project, env: string) {
 }
 
 export async function getTiltState(project: Project, env: string) {
-  const response = invoke("call_backend", {
+  const response = (await invoke("call_backend", {
     command: "reconcileTiltState",
     args: { project, env },
-  }) as Promise<string>
+  })) as string
 
-  return (await response).includes("status")
-    ? (JSON.parse(await response) as TiltStatus)
+  return typeof response === 'string' && response.includes("status")
+    ? (JSON.parse(response) as TiltStatus)
     : response
 }
 
