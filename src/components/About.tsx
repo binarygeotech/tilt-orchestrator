@@ -1,20 +1,27 @@
-import { Button } from './ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Separator } from './ui/separator';
-import { ArrowLeft, ExternalLink, Github, Heart, Package } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github, Heart, Package } from "lucide-react"
+
+import { Button } from "./ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card"
+import { Separator } from "./ui/separator"
 
 interface AboutProps {
-  onBack: () => void;
+  onBack: () => void
 }
 
 export default function About({ onBack }: AboutProps) {
   const handleOpenLink = (url: string) => {
-    window.open(url, '_blank');
-  };
+    window.open(url, "_blank")
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-8">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 dark:from-slate-900 dark:to-slate-800">
+      <div className="mx-auto max-w-4xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={onBack}>
@@ -26,10 +33,10 @@ export default function About({ onBack }: AboutProps) {
         {/* Main Card */}
         <Card>
           <CardHeader className="text-center">
-            <div className="flex justify-center mb-4">
-              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div className="mb-4 flex justify-center">
+              <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
                 <svg
-                  className="w-12 h-12 text-white"
+                  className="h-12 w-12 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -44,11 +51,12 @@ export default function About({ onBack }: AboutProps) {
               </div>
             </div>
             <CardTitle className="text-3xl">Tilt Orchestrator</CardTitle>
-            <CardDescription className="text-base mt-2">
-              A modern desktop application for managing microservices development with Tilt
+            <CardDescription className="mt-2 text-base">
+              A modern desktop application for managing microservices
+              development with Tilt
             </CardDescription>
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm font-medium">
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                 Version 0.1.0
               </span>
             </div>
@@ -57,11 +65,14 @@ export default function About({ onBack }: AboutProps) {
           <CardContent className="space-y-6">
             {/* Description */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">About This Application</h3>
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                Tilt Orchestrator simplifies the management of microservices development environments.
-                It provides an intuitive GUI for creating, configuring, and managing multi-service
-                projects with support for Docker, Kubernetes, Helm, and Kustomize deployments.
+              <h3 className="mb-3 text-lg font-semibold">
+                About This Application
+              </h3>
+              <p className="leading-relaxed text-slate-600 dark:text-slate-400">
+                Tilt Orchestrator simplifies the management of microservices
+                development environments. It provides an intuitive GUI for
+                creating, configuring, and managing multi-service projects with
+                support for Docker, Kubernetes, Helm, and Kustomize deployments.
               </p>
             </div>
 
@@ -69,27 +80,33 @@ export default function About({ onBack }: AboutProps) {
 
             {/* Features */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Key Features</h3>
+              <h3 className="mb-3 text-lg font-semibold">Key Features</h3>
               <ul className="space-y-2 text-slate-600 dark:text-slate-400">
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  <span>Visual project management with multi-environment support</span>
+                  <span className="mt-1 text-blue-500">•</span>
+                  <span>
+                    Visual project management with multi-environment support
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  <span>Support for Docker, Kubernetes, Helm, and Kustomize</span>
+                  <span className="mt-1 text-blue-500">•</span>
+                  <span>
+                    Support for Docker, Kubernetes, Helm, and Kustomize
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
+                  <span className="mt-1 text-blue-500">•</span>
                   <span>Real-time Tilt log viewer and process management</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
+                  <span className="mt-1 text-blue-500">•</span>
                   <span>Git repository cloning and IDE integration</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-500 mt-1">•</span>
-                  <span>Template-based Tiltfile and K8s manifest generation</span>
+                  <span className="mt-1 text-blue-500">•</span>
+                  <span>
+                    Template-based Tiltfile and K8s manifest generation
+                  </span>
                 </li>
               </ul>
             </div>
@@ -98,7 +115,7 @@ export default function About({ onBack }: AboutProps) {
 
             {/* Technology Stack */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Built With</h3>
+              <h3 className="mb-3 text-lg font-semibold">Built With</h3>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                   <Package className="h-4 w-4" />
@@ -131,13 +148,15 @@ export default function About({ onBack }: AboutProps) {
 
             {/* Links */}
             <div>
-              <h3 className="text-lg font-semibold mb-3">Links & Resources</h3>
+              <h3 className="mb-3 text-lg font-semibold">Links & Resources</h3>
               <div className="space-y-2">
                 <Button
                   variant="outline"
                   className="w-full justify-start"
                   onClick={() =>
-                    handleOpenLink('https://github.com/binarygeotech/tilt-orchestrator')
+                    handleOpenLink(
+                      "https://github.com/binarygeotech/tilt-orchestrator"
+                    )
                   }
                 >
                   <Github className="mr-2 h-4 w-4" />
@@ -148,7 +167,9 @@ export default function About({ onBack }: AboutProps) {
                   variant="outline"
                   className="w-full justify-start"
                   onClick={() =>
-                    handleOpenLink('https://github.com/binarygeotech/tilt-orchestrator/issues')
+                    handleOpenLink(
+                      "https://github.com/binarygeotech/tilt-orchestrator/issues"
+                    )
                   }
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
@@ -158,7 +179,7 @@ export default function About({ onBack }: AboutProps) {
                 <Button
                   variant="outline"
                   className="w-full justify-start"
-                  onClick={() => handleOpenLink('https://tilt.dev')}
+                  onClick={() => handleOpenLink("https://tilt.dev")}
                 >
                   <ExternalLink className="mr-2 h-4 w-4" />
                   Learn About Tilt
@@ -170,19 +191,20 @@ export default function About({ onBack }: AboutProps) {
             <Separator />
 
             {/* Credits */}
-            <div className="text-center space-y-3">
+            <div className="space-y-3 text-center">
               <div className="flex items-center justify-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                 <span>Made with</span>
-                <Heart className="h-4 w-4 text-red-500 fill-red-500" />
+                <Heart className="h-4 w-4 fill-red-500 text-red-500" />
                 <span>by the Tilt Orchestrator team</span>
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-500">
-                © 2026 Tilt Orchestrator Contributors. Licensed under MIT License.
+                © 2026 Tilt Orchestrator Contributors. Licensed under MIT
+                License.
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
     </div>
-  );
+  )
 }

@@ -104,7 +104,7 @@ export async function getTiltState(project: Project, env: string) {
     args: { project, env },
   })) as string
 
-  return typeof response === 'string' && response.includes("status")
+  return typeof response === "string" && response.includes("status")
     ? (JSON.parse(response) as TiltStatus)
     : response
 }
