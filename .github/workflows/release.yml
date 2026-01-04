@@ -39,12 +39,9 @@ jobs:
             PREVIOUS_TAG=$(git rev-list --max-parents=0 HEAD)
           fi
           
-          # Generate changelog
-          CHANGELOG=$(cat << 'EOF'
-          ## What's Changed
-          
-          EOF
-          )
+          # Generate changelog and save to file
+          echo "## What's Changed" > changelog.md
+          echo "" >> changelog.md
           
           # Add commits grouped by type
           FEATURES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^feat" --grep="^feature")
@@ -53,40 +50,61 @@ jobs:
           CHORES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^chore")
           
           if [ ! -z "$FEATURES" ]; then
-            CHANGELOG="${CHANGELOG}"$'\n### ✨ Features\n'"${FEATURES}"$'\n'
+            echo "### ✨ Features" >> changelog.md
+            echo "$FEATURES" >> changelog.md
+            echo "" >> changelog.md
           fi
           
           if [ ! -z "$FIXES" ]; then
-            CHANGELOG="${CHANGELOG}"$'\n### 🐛 Bug Fixes\n'"${FIXES}"$'\n'
+            echo "### 🐛 Bug Fixes" >> changelog.md
+            echo "$FIXES" >> changelog.md
+            echo "" >> changelog.md
           fi
           
           if [ ! -z "$DOCS" ]; then
-            CHANGELOG="${CHANGELOG}"$'\n### 📝 Documentation\n'"${DOCS}"$'\n'
+            echo "### 📝 Documentation" >> changelog.md
+            echo "$DOCS" >> changelog.md
+            echo "" >> changelog.md
           fi
           
           if [ ! -z "$CHORES" ]; then
-            CHANGELOG="${CHANGELOG}"$'\n### 🔧 Maintenance\n'"${CHORES}"$'\n'
+            echo "### 🔧 Maintenance" >> changelog.md
+            echo "$CHORES" >> changelog.md
+            echo "" >> changelog.md
           fi
           
           # Add installation instructions
-          CHANGELOG="${CHANGELOG}"$'\n\n## 📦 Installation\n\nDownload the appropriate installer for your platform from the assets below:\n\n- **macOS**: `*.dmg` (Universal binary for Intel and Apple Silicon)\n- **Linux**: `*.deb` (Debian/Ubuntu) or `*.AppImage` (all distros)\n- **Windows**: `*.msi` or `*.exe`\n\n## 🔗 Links\n\n- [Documentation](https://github.com/binarygeotech/tilt-orchestrator#readme)\n- [Report a bug](https://github.com/binarygeotech/tilt-orchestrator/issues/new?template=bug_report.md)\n- [Request a feature](https://github.com/binarygeotech/tilt-orchestrator/issues/new?template=feature_request.md)'
+          cat >> changelog.md << 'EOF'
           
-          # Save to output
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          ## 📦 Installation
+          
+          Download the appropriate installer for your platform from the assets below:
+          
+          - **macOS**: `*.dmg` (Universal binary for Intel and Apple Silicon)
+          - **Linux**: `*.deb` (Debian/Ubuntu) or `*.AppImage` (all distros)
+          - **Windows**: `*.msi` or `*.exe`
+          
+          ## 🔗 Links
+          
+          - [Documentation](https://github.com/binarygeotech/tilt-orchestrator#readme)
+          - [Report a bug](https://github.com/binarygeotech/tilt-orchestrator/issues/new?template=bug_report.md)
+          - [Request a feature](https://github.com/binarygeotech/tilt-orchestrator/issues/new?template=feature_request.md)
+          EOF
 
       - name: Create release
         id: create-release
         uses: actions/github-script@v7
         with:
           script: |
+            const fs = require('fs');
+            const changelog = fs.readFileSync('changelog.md', 'utf8');
+            
             const { data } = await github.rest.repos.createRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
               tag_name: `v${{ steps.get_version.outputs.VERSION }}`,
               name: `Tilt Orchestrator v${{ steps.get_version.outputs.VERSION }}`,
-              body: `${{ steps.changelog.outputs.CHANGELOG }}`,
+              body: changelog,
               draft: true,
               prerelease: false
             })
