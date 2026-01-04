@@ -83,7 +83,7 @@ Tilt Orchestrator is a cross-platform desktop application built with Tauri that 
 
 ---
 
-## � Screenshots
+## 🏞️ Screenshots
 
 ### Landing Screen
 Start here with recent projects or create a new one.
@@ -117,7 +117,7 @@ Configure new services with deployment types and environment variables.
 
 ---
 
-## �🔄 How It Works
+## 🔄 How It Works
 
 1. **Create a Project**: Define your project name, workspace location, and services directory
 2. **Add Services**: Configure services with deployment types, repository URLs, and environment variables
