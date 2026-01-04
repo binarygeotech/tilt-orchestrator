@@ -8,6 +8,10 @@ import { TrayIconProvider } from "../../providers/TrayIconProvider"
 import type { Project } from "../../types/project"
 
 vi.mock("../../api/api")
+vi.mock("@tauri-apps/plugin-dialog", () => ({
+  ask: vi.fn(() => Promise.resolve(true)),
+  message: vi.fn(() => Promise.resolve()),
+}))
 
 const mockProject: Project = {
   project: {
@@ -211,13 +215,15 @@ describe("ProjectView", () => {
       }
 
       render(
-        <AppStateProvider>
-          <ProjectView
-            project={projectWithDisabledService}
-            onBack={mockOnBack}
-            onEdit={mockOnEdit}
-          />
-        </AppStateProvider>
+        <TrayIconProvider>
+          <AppStateProvider>
+            <ProjectView
+              project={projectWithDisabledService}
+              onBack={mockOnBack}
+              onEdit={mockOnEdit}
+            />
+          </AppStateProvider>
+        </TrayIconProvider>
       )
 
       expect(screen.getByText("Disabled")).toBeInTheDocument()
