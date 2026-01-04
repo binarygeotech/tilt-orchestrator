@@ -16,21 +16,13 @@ pub struct TiltState {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct TrayState {
     pub current_project: Option<Project>,
     pub current_env: Option<String>,
     pub tilt_state: Option<TiltState>,
 }
 
-impl Default for TrayState {
-    fn default() -> Self {
-        Self {
-            current_project: None,
-            current_env: None,
-            tilt_state: None,
-        }
-    }
-}
 
 fn build_menu(app: &AppHandle, state: &TrayState) -> tauri::Result<Menu<tauri::Wry>> {
     let mut menu_builder = MenuBuilder::new(app);
@@ -96,7 +88,7 @@ fn build_menu(app: &AppHandle, state: &TrayState) -> tauri::Result<Menu<tauri::W
                         //     .build(app)?;
 
                         let editor_item = MenuItemBuilder::new("Open in Editor")
-                            .id(&format!("service_editor_{}", service_name))
+                            .id(format!("service_editor_{}", service_name))
                             .build(app)?;
 
                         let service_submenu = SubmenuBuilder::new(app, &service_name)
@@ -156,13 +148,13 @@ fn handle_menu_event(app: &AppHandle, event: tauri::menu::MenuEvent) {
         }
         "tilt_start" => {
             // Emit the frontend event to start Tilt
-            app.emit("start-tilt", {}).unwrap();
+            app.emit("start-tilt", ()).unwrap();
         }
         "tilt_stop" => {
-            app.emit("stop-tilt", {}).unwrap();
+            app.emit("stop-tilt", ()).unwrap();
         }
         "tilt_restart" => {
-            app.emit("restart-tilt", {}).unwrap();
+            app.emit("restart-tilt", ()).unwrap();
         }
         "tilt_web_ui" => {
             // Open Tilt Web UI in browser

@@ -275,7 +275,7 @@ fn generate_service_tiltfile(
             ("{{PORT}}", &svc.port.to_string()),
             (
                 "{{DEPENDENCIES}}",
-                &serde_json::to_string(&svc.depends_on.as_deref().unwrap_or(&vec![])).unwrap(),
+                &serde_json::to_string(&svc.depends_on.as_deref().unwrap_or(&[])).unwrap(),
             ),
         ],
     )

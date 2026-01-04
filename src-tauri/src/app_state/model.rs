@@ -23,6 +23,7 @@ pub struct RecentProject {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct Preferences {
     pub auto_open_last_project: bool,
     pub default_editor: Option<String>,
@@ -39,11 +40,3 @@ impl Default for WindowState {
     }
 }
 
-impl Default for Preferences {
-    fn default() -> Self {
-        Self {
-            auto_open_last_project: false,
-            default_editor: None,
-        }
-    }
-}

@@ -607,6 +607,9 @@ We follow [Conventional Commits](https://www.conventionalcommits.org/):
 - Add documentation comments (`///`)
 - Handle errors with `Result<T, E>`
 - Write unit tests for new functions
+- Run `cargo fmt --check` to check formatting and `cargo fmt` to auto-fix
+- Run `cargo clippy -- -D warnings` to check for any mistake and improve your Rust code
+- Run `cargo clippy --fix --lib -p tilt-orchestrator` to auto-fix code mistake(s)
 
 ### Pull Request Process
 

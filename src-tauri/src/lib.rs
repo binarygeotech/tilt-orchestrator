@@ -51,7 +51,7 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
             let state = load_state(app.handle());
 
-            let _ = tray_icon::tray_manager::create_tray(&app.handle());
+            let _ = tray_icon::tray_manager::create_tray(app.handle());
 
             app.manage(RwLock::new(tray_icon::tray_manager::TrayState::default()));
 

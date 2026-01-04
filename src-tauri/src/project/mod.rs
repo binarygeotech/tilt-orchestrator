@@ -41,7 +41,7 @@ pub fn create_project(
     workspace_path: &str,
     services_path: Option<&str>,
 ) -> Result<Project, AppError> {
-    let project_path = project_root(&workspace_path, &name);
+    let project_path = project_root(workspace_path, name);
     let services_path = services_path.unwrap_or("repos");
     // let project_path = std::path::PathBuf::from(workspace_path).join(name);
     let dirs = [services_path, "tilt", ".tooling"];
@@ -88,7 +88,7 @@ pub fn create_project(
     write_json(&project_file(&project_path), &project)?;
 
     for (key, environment) in project.environments.iter() {
-        write_json(&env_file(&project_path, &key), &environment)?;
+        write_json(&env_file(&project_path, key), &environment)?;
 
         // Clone repositories and create service directories for each service
         for service in environment.services.iter() {
@@ -100,7 +100,7 @@ pub fn create_project(
             // Clone repository if configured
             if let Some(repo) = &service.repo {
                 let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                    AppError::Io(io::Error::new(io::ErrorKind::Other, e.to_string()))
+                    AppError::Io(io::Error::other(e.to_string()))
                 })?;
 
                 rt.block_on(async {
@@ -111,7 +111,7 @@ pub fn create_project(
                     )
                     .await
                 })
-                .map_err(|e| AppError::Io(e))?;
+                .map_err(AppError::Io)?;
             }
         }
 
@@ -148,7 +148,7 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
     for (key, environment) in project.environments.iter() {
         // Get old environment to compare services
         let old_env: Environment =
-            read_json(&env_file(Path::new(&project_path), &key)).unwrap_or(Environment {
+            read_json(&env_file(Path::new(&project_path), key)).unwrap_or(Environment {
                 shared_env: HashMap::new(),
                 services: vec![],
             });
@@ -163,10 +163,10 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
             .collect();
 
         // Write environment
-        write_json(&env_file(Path::new(&project_path), &key), &environment)?;
+        write_json(&env_file(Path::new(&project_path), key), &environment)?;
 
         // Generate tiltfiles
-        let _ = generate_tiltfiles(&project, key);
+        let _ = generate_tiltfiles(project, key);
 
         // Process all services
         let env_services: Vec<Service> = environment.services.clone();
@@ -191,7 +191,7 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
                         .unwrap_or(true)
                     {
                         let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                            AppError::Io(io::Error::new(io::ErrorKind::Other, e.to_string()))
+                            AppError::Io(io::Error::other(e.to_string()))
                         })?;
 
                         rt.block_on(async {
@@ -202,7 +202,7 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
                             )
                             .await
                         })
-                        .map_err(|e| AppError::Io(e))?;
+                        .map_err(AppError::Io)?;
                     }
                 }
             }
