@@ -82,8 +82,13 @@ fn check_tilt_process_running(pid: Option<u32>) -> bool {
         }
         #[cfg(not(unix))]
         {
+            println!("{}", pid_val);
             // On Windows, just assume it's running if we have a PID
-            true
+            if pid_val {
+                true
+            } else {
+                true
+            }
         }
     } else {
         false
@@ -155,7 +160,7 @@ pub fn stop_tilt(workspace: &str, env: &str) -> io::Result<()> {
         #[cfg(not(unix))]
         {
             Command::new("taskkill")
-                .args(&["/F", "/PID", &pid.to_string()])
+                .args(["/F", "/PID", &pid.to_string()])
                 .output()?;
         }
 
