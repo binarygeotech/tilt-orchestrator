@@ -15,14 +15,12 @@ pub struct TiltState {
     pub web_ui_url: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TrayState {
     pub current_project: Option<Project>,
     pub current_env: Option<String>,
     pub tilt_state: Option<TiltState>,
 }
-
 
 fn build_menu(app: &AppHandle, state: &TrayState) -> tauri::Result<Menu<tauri::Wry>> {
     let mut menu_builder = MenuBuilder::new(app);

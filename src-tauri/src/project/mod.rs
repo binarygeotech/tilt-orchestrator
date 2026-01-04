@@ -99,9 +99,8 @@ pub fn create_project(
 
             // Clone repository if configured
             if let Some(repo) = &service.repo {
-                let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                    AppError::Io(io::Error::other(e.to_string()))
-                })?;
+                let rt = tokio::runtime::Runtime::new()
+                    .map_err(|e| AppError::Io(io::Error::other(e.to_string())))?;
 
                 rt.block_on(async {
                     clone_repo(
@@ -190,9 +189,8 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
                         .map(|mut i| i.next().is_none())
                         .unwrap_or(true)
                     {
-                        let rt = tokio::runtime::Runtime::new().map_err(|e| {
-                            AppError::Io(io::Error::other(e.to_string()))
-                        })?;
+                        let rt = tokio::runtime::Runtime::new()
+                            .map_err(|e| AppError::Io(io::Error::other(e.to_string())))?;
 
                         rt.block_on(async {
                             clone_repo(

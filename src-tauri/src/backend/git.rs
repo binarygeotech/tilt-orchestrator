@@ -9,8 +9,6 @@ pub async fn clone_repo(url: &str, target_dir: &str, branch: Option<&str>) -> st
     if status.success() {
         Ok(())
     } else {
-        Err(std::io::Error::other(
-            "Git clone failed",
-        ))
+        Err(std::io::Error::other("Git clone failed"))
     }
 }
