@@ -1,5 +1,6 @@
 import { useState } from "react"
-import { updateProject } from "@/api"
+import { updateProject } from "@/api/api"
+import { message } from "@tauri-apps/plugin-dialog"
 import { ArrowLeft, Database, Loader2, Save, Settings } from "lucide-react"
 
 import { Project, Service } from "@/types/project"
@@ -139,15 +140,15 @@ export default function ProjectManagement({
     setSaveMessage("")
 
     try {
-      console.log(project.environments)
       await updateProject(project.project.workspace_path, project)
-
-      // Here you would call your backend to save the project
-      // For now, we'll just show a success message
-      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate save
 
       setSaveMessage("Project saved successfully!")
       setTimeout(() => setSaveMessage(""), 3000)
+
+      await message("Project updated successfully.", {
+        title: "Tilt Orchestrator",
+        kind: "info",
+      })
 
       // Call onSave callback if provided
       if (onSave) {
@@ -155,6 +156,11 @@ export default function ProjectManagement({
       }
     } catch (error: any) {
       setSaveMessage(`Failed to save: ${error.toString()}`)
+
+      await message(`Failed to save: ${error.toString()}`, {
+        title: "Tilt Orchestrator",
+        kind: "error",
+      })
     } finally {
       setSaving(false)
     }

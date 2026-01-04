@@ -25,7 +25,7 @@ export const AppStateProvider: React.FC<{ children: ReactNode }> = ({
     preferences: {
       auto_open_last_project: false,
     },
-    app_started: true,
+    app_started: false,
   })
 
   return (

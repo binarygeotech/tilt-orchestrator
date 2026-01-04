@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react"
+import { AppStateProvider } from "@/providers/AppStateProvider"
 import { invoke } from "@tauri-apps/api/core"
+import { message } from "@tauri-apps/plugin-dialog"
 
-import { openProject } from "./api"
-import About from "./components/About"
-import CreateProjectForm from "./components/CreateProjectForm"
-import LandingScreen from "./components/LandingScreen"
-import ProjectManagement from "./components/ProjectManagement"
-import ProjectView from "./components/ProjectView"
-import Settings from "./components/Settings"
-import { ThemeProvider } from "./components/ThemeProvider"
-import ThemeToggle from "./components/ThemeToggle"
-import { AppStateProvider } from "./providers/appstate-provider"
-import { Project } from "./types/project"
+import { Project } from "@/types/project"
+import About from "@/components/About"
+import CreateProjectForm from "@/components/CreateProjectForm"
+import LandingScreen from "@/components/LandingScreen"
+import ProjectManagement from "@/components/ProjectManagement"
+import ProjectView from "@/components/ProjectView"
+import Settings from "@/components/Settings"
+import { ThemeProvider } from "@/components/ThemeProvider"
+import ThemeToggle from "@/components/ThemeToggle"
+
+import { openProject } from "./api/api"
+import { TrayIconProvider } from "./providers/TrayIconProvider"
 
 type Screen =
   | "landing"
@@ -21,13 +24,17 @@ type Screen =
   | "settings"
   | "about"
 
+const SPLASHSCREEN_TIMEOUT = 2000
+
 function App() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("landing")
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
 
   useEffect(() => {
     // Close splashscreen when React app is ready
-    invoke("close_splashscreen").catch(console.error)
+    setTimeout(() => {
+      invoke("close_splashscreen").catch(console.error)
+    }, SPLASHSCREEN_TIMEOUT)
   }, [])
 
   const handleCreateProject = () => {
@@ -40,11 +47,12 @@ function App() {
 
       setCurrentProject(JSON.parse(project as string))
       setCurrentScreen("project-view")
-
-      // await message("Project created successfully.", { title: 'New Project', kind: 'info' });
     } catch (err) {
-      console.error("Failed to load project", err)
-      // await message('Failed to create project: ' + err, { title: 'New Project', kind: 'error' });
+      // console.error("Failed to load project", err)
+      await message("Failed to open project: " + err, {
+        title: "Tilt Orchestrator",
+        kind: "error",
+      })
     }
   }
 
@@ -78,41 +86,45 @@ function App() {
   return (
     <AppStateProvider>
       <ThemeProvider>
-        <div className="overflow-y-auto">
-          <ThemeToggle />
-          {currentScreen === "landing" && (
-            <LandingScreen
-              onCreateProject={handleCreateProject}
-              onOpenProject={handleOpenProject}
-              onOpenSettings={handleOpenSettings}
-              onOpenAbout={handleOpenAbout}
-            />
-          )}
-          {currentScreen === "create-project" && (
-            <CreateProjectForm
-              onBack={handleBackToLanding}
-              onProjectCreated={handleProjectCreated}
-            />
-          )}
-          {currentScreen === "settings" && (
-            <Settings onBack={handleBackToLanding} />
-          )}
-          {currentScreen === "about" && <About onBack={handleBackToLanding} />}
-          {currentScreen === "project-view" && currentProject && (
-            <ProjectView
-              project={currentProject}
-              onBack={handleBackToLanding}
-              onEdit={handleEditProject}
-            />
-          )}
-          {currentScreen === "project-management" && currentProject && (
-            <ProjectManagement
-              project={currentProject}
-              onBack={handleBackToLanding}
-              onSave={handleProjectSaved}
-            />
-          )}
-        </div>
+        <TrayIconProvider>
+          <div className="overflow-y-auto">
+            <ThemeToggle />
+            {currentScreen === "landing" && (
+              <LandingScreen
+                onCreateProject={handleCreateProject}
+                onOpenProject={handleOpenProject}
+                onOpenSettings={handleOpenSettings}
+                onOpenAbout={handleOpenAbout}
+              />
+            )}
+            {currentScreen === "create-project" && (
+              <CreateProjectForm
+                onBack={handleBackToLanding}
+                onProjectCreated={handleProjectCreated}
+              />
+            )}
+            {currentScreen === "settings" && (
+              <Settings onBack={handleBackToLanding} />
+            )}
+            {currentScreen === "about" && (
+              <About onBack={handleBackToLanding} />
+            )}
+            {currentScreen === "project-view" && currentProject && (
+              <ProjectView
+                project={currentProject}
+                onBack={handleBackToLanding}
+                onEdit={handleEditProject}
+              />
+            )}
+            {currentScreen === "project-management" && currentProject && (
+              <ProjectManagement
+                project={currentProject}
+                onBack={handleBackToLanding}
+                onSave={handleProjectSaved}
+              />
+            )}
+          </div>
+        </TrayIconProvider>
       </ThemeProvider>
     </AppStateProvider>
   )

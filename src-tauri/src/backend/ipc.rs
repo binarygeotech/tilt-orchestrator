@@ -1,10 +1,14 @@
-use anyhow::Result;
-use serde::Deserialize;
 use crate::backend::generator::{generate_tiltfiles, reorder_services};
 use crate::backend::git::clone_repo;
 use crate::backend::project::{Project, Service};
-use crate::project::{open_in_editor, create_project, load_project_info, update_project, update_service};
-use crate::backend::tilt_manager::{start_tilt, stop_tilt, read_state, reconcile_tilt_state, get_tilt_logs, restart_tilt};
+use crate::backend::tilt_manager::{
+    get_tilt_logs, read_state, reconcile_tilt_state, restart_tilt, start_tilt, stop_tilt,
+};
+use crate::project::{
+    create_project, load_project_info, open_in_editor, update_project, update_service,
+};
+use anyhow::Result;
+use serde::Deserialize;
 
 /// Central IPC command handler
 pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_json::Value> {
@@ -107,11 +111,12 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 services_path: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            let project = create_project(&args.name, &args.workspace_path, Some(&args.services_path))
-                .map_err(|e| anyhow::anyhow!("Failed to create project: {}", e))?;
+            let project =
+                create_project(&args.name, &args.workspace_path, Some(&args.services_path))
+                    .map_err(|e| anyhow::anyhow!("Failed to create project: {}", e))?;
             Ok(serde_json::to_value(project)?)
         }
-        
+
         "openProject" => {
             #[derive(Deserialize)]
             struct Args {
@@ -122,7 +127,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 .map_err(|e| anyhow::anyhow!("Failed to load project: {}", e))?;
             Ok(serde_json::to_value(project)?)
         }
-        
+
         "updateProject" => {
             #[derive(Deserialize)]
             struct Args {
@@ -148,13 +153,14 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 &args.workspace_path,
                 &args.env,
                 &args.service_name,
-                args.service
-            ).map_err(|e| anyhow::anyhow!("Failed to update service: {}", e))?;
+                args.service,
+            )
+            .map_err(|e| anyhow::anyhow!("Failed to update service: {}", e))?;
             Ok(serde_json::to_value(project)?)
         }
 
         "openInEditor" => {
-            #[derive(Deserialize)]
+            #[derive(Deserialize, Clone, Debug)]
             struct Args {
                 project: Project,
                 repo_name: String,
@@ -162,6 +168,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
             }
             let args: Args = serde_json::from_value(args)?;
             let services_path = args.project.project.services_path.as_deref();
+            println!("{:?}", &args.clone());
             open_in_editor(
                 std::path::Path::new(&args.project.project.workspace_path),
                 &args.repo_name,
@@ -176,7 +183,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
             struct Args {
                 project: Project,
                 env: String,
-                new_order: Vec<String>
+                new_order: Vec<String>,
             }
             let mut args: Args = serde_json::from_value(args)?;
             reorder_services(&mut args.project, &args.env, args.new_order)?;

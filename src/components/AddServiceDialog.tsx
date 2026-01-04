@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react"
-import { cloneRepo } from "@/api"
+import { cloneRepo } from "@/api/api"
 import { Download, GitBranch, Loader2, Plus, Trash2 } from "lucide-react"
 
 import { Service } from "@/types/project"

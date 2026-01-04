@@ -1,7 +1,7 @@
-use tauri::command;
-use crate::app_state::{load_state, save_state, add_recent_project};
-use crate::app_state::model::{RecentProject, Preferences};
+use crate::app_state::model::{Preferences, RecentProject};
+use crate::app_state::{add_recent_project, load_state, remove_recent_project, save_state};
 use crate::backend::ipc::handle_ipc;
+use tauri::command;
 
 #[command]
 pub fn get_app_state(app: tauri::AppHandle) -> crate::app_state::model::AppState {
@@ -10,26 +10,19 @@ pub fn get_app_state(app: tauri::AppHandle) -> crate::app_state::model::AppState
 
 /// Get recent projects only (project picker)
 #[command]
-pub fn get_recent_projects(
-    app: tauri::AppHandle,
-) -> Vec<RecentProject> {
+pub fn get_recent_projects(app: tauri::AppHandle) -> Vec<RecentProject> {
     load_state(&app).recent_projects
 }
 
 /// Get preferences
 #[command]
-pub fn get_preferences(
-    app: tauri::AppHandle,
-) -> Preferences {
+pub fn get_preferences(app: tauri::AppHandle) -> Preferences {
     load_state(&app).preferences
 }
 
 /// Update user preferences
 #[command]
-pub fn update_preferences(
-    app: tauri::AppHandle,
-    preferences: Preferences,
-) -> Result<(), String> {
+pub fn update_preferences(app: tauri::AppHandle, preferences: Preferences) -> Result<(), String> {
     let mut state = load_state(&app);
     state.preferences = preferences;
     save_state(&app, &state).map_err(|e| e.to_string())
@@ -42,8 +35,13 @@ pub fn add_recent_project_cmd(
     name: String,
     path: String,
 ) -> Result<(), String> {
-    add_recent_project(&app, name, path)
-        .map_err(|e| e.to_string())
+    add_recent_project(&app, name, path).map_err(|e| e.to_string())
+}
+
+/// Remove a project from recent projects
+#[command]
+pub fn remove_recent_project_cmd(app: tauri::AppHandle, path: String) -> Result<(), String> {
+    remove_recent_project(&app, path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]

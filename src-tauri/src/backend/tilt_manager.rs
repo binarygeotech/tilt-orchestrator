@@ -75,13 +75,14 @@ fn check_tilt_process_running(pid: Option<u32>) -> bool {
         {
             use std::process::Command;
             Command::new("kill")
-                .args(&["-0", &pid_val.to_string()])
+                .args(["-0", &pid_val.to_string()])
                 .output()
                 .map(|output| output.status.success())
                 .unwrap_or(false)
         }
         #[cfg(not(unix))]
         {
+            println!("{}", pid_val);
             // On Windows, just assume it's running if we have a PID
             true
         }
@@ -101,7 +102,7 @@ pub fn reconcile_tilt_state(workspace: &str, env: &str) -> io::Result<TitleStatu
         write_state(workspace, env, &state)?;
     }
 
-    Ok(TitleStatus { status: status })
+    Ok(TitleStatus { status })
 }
 
 /// Start Tilt for the given workspace/env
@@ -118,7 +119,7 @@ pub fn start_tilt(workspace: &str, env: &str) -> io::Result<()> {
     let log_file = File::create(&log_file_path)?;
 
     let child = Command::new("tilt")
-        .args(&["up", "-f"])
+        .args(["up", "-f"])
         .arg(tiltfile)
         .current_dir(workspace)
         .stdin(Stdio::null())
@@ -155,7 +156,7 @@ pub fn stop_tilt(workspace: &str, env: &str) -> io::Result<()> {
         #[cfg(not(unix))]
         {
             Command::new("taskkill")
-                .args(&["/F", "/PID", &pid.to_string()])
+                .args(["/F", "/PID", &pid.to_string()])
                 .output()?;
         }
 
@@ -176,9 +177,9 @@ pub fn stop_tilt(workspace: &str, env: &str) -> io::Result<()> {
 
 /// Restart Tilt for the given workspace/env
 pub fn restart_tilt(workspace: &str, env: &str) -> io::Result<()> {
-    let _ = stop_tilt(&workspace, &env)?;
+    stop_tilt(workspace, env)?;
 
-    let _ = start_tilt(&workspace, &env)?;
+    start_tilt(workspace, env)?;
 
     Ok(())
 }

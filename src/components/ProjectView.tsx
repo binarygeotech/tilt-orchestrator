@@ -3,12 +3,15 @@ import {
   generateTiltfiles,
   getTiltLogs,
   getTiltState,
+  // removeRecentProject,
   startTilt,
   stopTilt,
-} from "@/api"
-import { useAppState } from "@/providers/appstate-provider"
+} from "@/api/api"
+import { useAppState } from "@/providers/AppStateProvider"
+import { useTrayIcon } from "@/providers/TrayIconProvider"
 import { invoke } from "@tauri-apps/api/core"
-import { message } from "@tauri-apps/plugin-dialog"
+import { listen } from "@tauri-apps/api/event"
+import { ask, message } from "@tauri-apps/plugin-dialog"
 import { openUrl } from "@tauri-apps/plugin-opener"
 import {
   ArrowLeft,
@@ -48,6 +51,7 @@ interface ProjectViewProps {
   onBack: () => void
   onEdit: () => void
 }
+const TILT_STATUS_INTERVAL = 3000
 
 export default function ProjectView({
   project,
@@ -70,18 +74,44 @@ export default function ProjectView({
   const [isUpdatingTiltfiles, setIsUpdatingTiltfiles] = useState(false)
   const [isRestarting, setIsRestarting] = useState(false)
   const terminalAutoScrollRef = useRef(terminalAutoScroll)
-  const [titleWebUi, setTiltWebUi] = useState<string>("")
+  const [tiltWebUi, setTiltWebUi] = useState<string>("")
+  const { setTrayIcon } = useTrayIcon()
+  const tiltIntervalRef = useRef<any>(null)
 
   const currentEnv = project.environments[selectedEnv]
 
   const handleStartTilt = async () => {
     try {
+      if (
+        currentEnv &&
+        (!currentEnv.services.length ||
+          !currentEnv.services.some((svc) => svc.enabled))
+      ) {
+        return await message(
+          "Add or enable at least one service to start Tilt",
+          {
+            title: "Start Tilt",
+            kind: "info",
+          }
+        )
+      }
+
       setTiltStatus("starting")
       await startTilt(project, selectedEnv)
       setTiltStatus("running")
+
+      if (tiltIntervalRef.current) {
+        clearInterval(tiltIntervalRef.current)
+      }
+
+      initTiltCheckerInterval()
     } catch (error) {
       console.error("Failed to start Tilt:", error)
       setTiltStatus("stopped")
+      await message(`Failed to start Tilt: ${error}`, {
+        title: "Start Tilt",
+        kind: "error",
+      })
     }
   }
 
@@ -97,6 +127,10 @@ export default function ProjectView({
     } catch (error) {
       console.error("Failed to stop Tilt:", error)
       setTiltStatus("running")
+      await message(`Failed to stop Tilt: ${error}`, {
+        title: "Stop Tilt Orchestrator",
+        kind: "error",
+      })
     }
   }
 
@@ -109,34 +143,73 @@ export default function ProjectView({
 
       setTiltStatus(tiltState as any | "running")
     } catch (error) {
-      console.error("Failed to get Tilt status:", error)
+      console.error("", error)
+      await message(`Failed to get Tilt status: ${error}`, {
+        title: "Tilt Status",
+        kind: "error",
+      })
     } finally {
       setIsCheckingStatus(false)
     }
   }
 
   const initTiltCheckerInterval = () => {
+    if (tiltIntervalRef.current || tiltStatus === "stopped") {
+      return
+    }
+
     const interval = setInterval(async () => {
       await handleRefreshStatus()
       if (tiltStatus === "running") {
         await fetchLogs()
       }
-    }, 3000)
+    }, TILT_STATUS_INTERVAL)
+
+    tiltIntervalRef.current = interval
 
     setTiltInterval(interval)
   }
 
-  const applyTerminalAutoScroll = useCallback(() => {
-    if (tiltInterval) {
-      clearInterval(tiltInterval)
+  const handleBackButton = async () => {
+    if (tiltStatus === "running") {
+      const response = await ask(
+        "Tilt is currently running, closing the project will stop Tilt process. Do you want to proceed?",
+        {
+          title: "Tilt is Running",
+          okLabel: "Yes, proceed",
+          kind: "warning",
+        }
+      )
+
+      if (!response) {
+        return
+      }
+
+      await handleStopTilt()
     }
 
+    setTrayIcon({
+      current_project: null,
+      env: "",
+      tilt_status: null,
+    })
+
+    if (tiltIntervalRef.current) {
+      clearInterval(tiltIntervalRef.current)
+    }
+
+    if (onBack) {
+      onBack()
+    }
+  }
+
+  const applyTerminalAutoScroll = useCallback(() => {
     // Auto-scroll to bottom
     if (terminalAutoScrollRef.current && terminalRef.current) {
       terminalRef.current.scrollTop = terminalRef.current.scrollHeight
     }
 
-    if (tiltStatus === "running") {
+    if (tiltStatus === "running" && !tiltIntervalRef.current) {
       initTiltCheckerInterval()
     }
   }, [terminalAutoScroll])
@@ -149,33 +222,71 @@ export default function ProjectView({
       applyTerminalAutoScroll()
     } catch (error) {
       console.error("Failed to fetch logs:", error)
-      await message("Unable to fetch tilt logs", { title: "Tilt Orchestrator" })
+      await message("Unable to fetch tilt logs", { title: "Tilt Logs" })
     }
   }
 
   const handleOpenTiltWebUi = async () => {
     try {
-      await openUrl(titleWebUi)
+      await openUrl(tiltWebUi)
     } catch (err) {
       await message("Opening Tilt Web Ui failed", {
-        title: "Tilt Orchestrator",
+        title: "Tilt Web UI",
       })
     }
   }
 
   const handleUpdateTiltfiles = async () => {
     try {
-      setIsUpdatingTiltfiles(true)
-      await generateTiltfiles(project, selectedEnv)
+      await ask(
+        "This process will re-generate all Tiltfiles from the most recent project configurations. The process cannot be reversed. Do you which to continue?",
+        {
+          title: "Update Tiltfiles",
+          okLabel: "Yes, proceed",
+          kind: "warning",
+        }
+      ).then(async (response: boolean) => {
+        if (response) {
+          setIsUpdatingTiltfiles(true)
+          await generateTiltfiles(project, selectedEnv)
+        }
+      })
     } catch (error) {
       console.error("Failed to update Tiltfiles:", error)
       await message("Failed to update Tiltfiles", {
-        title: "Tilt Orchestrator",
+        title: "Update Tiltfiles",
       })
     } finally {
       setIsUpdatingTiltfiles(false)
     }
   }
+
+  // const handleRemoveFromRecent = async () => {
+  //     try {
+  //         const confirmed = await ask(
+  //             `Remove "${project.project.name}" from recent projects?`,
+  //             {
+  //                 title: "Remove from Recent",
+  //                 kind: "warning",
+  //                 okLabel: "Remove",
+  //             }
+  //         )
+
+  //         if (confirmed) {
+  //             await removeRecentProject(project.project.workspace_path)
+
+  //             // Navigate back after removing
+  //             if (onBack) {
+  //                 onBack()
+  //             }
+  //         }
+  //     } catch (error) {
+  //         console.error("Failed to remove from recent:", error)
+  //         await message("Failed to remove project from recent list", {
+  //             title: "Tilt Orchestrator",
+  //         })
+  //     }
+  // }
 
   const handleRestartTilt = async () => {
     try {
@@ -194,6 +305,10 @@ export default function ProjectView({
     } catch (error) {
       console.error("Failed to restart Tilt:", error)
       setTiltStatus("stopped")
+      await message(`Failed to restart Tilt: ${error}`, {
+        title: "Restart Tilt",
+        kind: "error",
+      })
     } finally {
       setIsRestarting(false)
     }
@@ -203,6 +318,7 @@ export default function ProjectView({
     try {
       // Get editor preference from app state
       const editor = appState.preferences.default_editor || undefined
+      console.log(appState)
 
       const servicePath = service.path || service.name
       await invoke("call_backend", {
@@ -215,15 +331,25 @@ export default function ProjectView({
       })
     } catch (error) {
       console.error("Failed to open in editor:", error)
+      await message(`Failed to open service in editor: ${error}`, {
+        title: "Open Service",
+        kind: "error",
+      })
     }
   }
 
   useEffect(() => {
-    initTiltCheckerInterval()
+    if (!tiltIntervalRef.current) {
+      initTiltCheckerInterval()
+    } else if (tiltStatus === "stopped" && tiltIntervalRef.current) {
+      clearInterval(tiltIntervalRef.current)
+      tiltIntervalRef.current = null
+    }
 
     return () => {
-      if (tiltInterval) {
-        clearInterval(tiltInterval)
+      if (tiltIntervalRef.current) {
+        clearInterval(tiltIntervalRef.current)
+        tiltIntervalRef.current = null
       }
     }
   }, [tiltStatus])
@@ -234,17 +360,98 @@ export default function ProjectView({
   }, [terminalAutoScroll])
 
   useEffect(() => {
-    if (!titleWebUi && tiltStatus === "running" && tiltLogs.length) {
+    if (!tiltWebUi && tiltStatus === "running" && tiltLogs.length) {
       const tiltInfoLine = tiltLogs[0]
       const match = tiltInfoLine.match(/https?:\/\/\S+/)
 
       setTiltWebUi(match ? match[0] : "")
+    } else if (tiltWebUi && tiltStatus !== "running") {
+      setTiltWebUi("")
     }
-  }, [tiltLogs, titleWebUi, tiltStatus])
+  }, [tiltLogs, tiltWebUi, tiltStatus])
+
+  useEffect(() => {
+    setTrayIcon({
+      current_project: project,
+      env: selectedEnv,
+      tilt_status: {
+        is_running: tiltStatus === "running",
+        status: tiltStatus,
+        web_ui_url: tiltWebUi,
+      },
+    })
+  }, [project, tiltWebUi, tiltStatus, selectedEnv])
 
   // Initial log fetch
   useEffect(() => {
     fetchLogs()
+  }, [selectedEnv])
+
+  const initListeners = async () => {
+    const startTiltListener = await listen("start-tilt", async (_) => {
+      await handleStartTilt()
+    })
+
+    const stopTiltListener = await listen("stop-tilt", async (_) => {
+      await handleStopTilt()
+    })
+
+    const restartTiltListener = await listen("restart-tilt", async (_) => {
+      await handleRestartTilt()
+    })
+
+    const openServiceInEditor = await listen(
+      "open-service-in-editor",
+      async (event) => {
+        const serviceName = event.payload
+        const service = project.environments[selectedEnv].services.find(
+          (service) => service.name === serviceName
+        )
+
+        if (service) {
+          await handleOpenInEditor(service)
+        }
+      }
+    )
+
+    // const disableService = await listen("toggle-service", async (event) => {
+    //     console.log('Disable service', event)
+    // });
+
+    return [
+      startTiltListener,
+      stopTiltListener,
+      restartTiltListener,
+      openServiceInEditor,
+      // disableService,
+    ]
+  }
+
+  const listeners = useRef<Array<() => any> | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+
+    const setup = async () => {
+      listeners.current?.forEach((unlisten) => unlisten())
+      listeners.current = null
+
+      const l = await initListeners()
+
+      if (!cancelled) {
+        listeners.current = l
+      } else {
+        l.forEach((unlisten) => unlisten())
+      }
+    }
+
+    setup()
+
+    return () => {
+      cancelled = true
+      listeners.current?.forEach((unlisten) => unlisten())
+      listeners.current = null
+    }
   }, [selectedEnv])
 
   return (
@@ -252,14 +459,24 @@ export default function ProjectView({
       <div className="mx-auto max-w-6xl space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <Button variant="ghost" onClick={onBack}>
+          <Button variant="ghost" onClick={handleBackButton}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          <Button onClick={onEdit}>
-            <Settings className="mr-2 h-4 w-4" />
-            Edit Project
-          </Button>
+          <div className="flex gap-2">
+            {/* <Button
+                            variant="ghost"
+                            onClick={handleRemoveFromRecent}
+                            title="Remove from recent projects"
+                        >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Remove from Recent
+                        </Button> */}
+            <Button onClick={onEdit}>
+              <Settings className="mr-2 h-4 w-4" />
+              Edit Project
+            </Button>
+          </div>
         </div>
 
         {/* Project Info */}
@@ -348,7 +565,7 @@ export default function ProjectView({
               </div>
               <div className="flex items-center gap-2">
                 <Badge
-                  variant={tiltStatus === "running" ? "default" : "secondary"}
+                  variant={tiltStatus !== "running" ? "default" : "secondary"}
                   className="capitalize"
                 >
                   {tiltStatus}
@@ -357,7 +574,7 @@ export default function ProjectView({
                   size="sm"
                   variant="ghost"
                   onClick={handleRefreshStatus}
-                  disabled={isCheckingStatus}
+                  disabled={tiltStatus === "stopped"}
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${isCheckingStatus ? "animate-spin" : ""}`}
@@ -389,6 +606,7 @@ export default function ProjectView({
                 onClick={handleStopTilt}
                 disabled={tiltStatus !== "running" && tiltStatus !== "stopping"}
                 variant="destructive"
+                className="text-white"
               >
                 {tiltStatus === "stopping" ? (
                   <>
@@ -404,7 +622,7 @@ export default function ProjectView({
               </Button>
               <Button
                 onClick={handleRestartTilt}
-                disabled={tiltStatus !== "running" || isRestarting}
+                disabled={tiltStatus !== "running"}
                 variant="outline"
               >
                 {isRestarting ? (
@@ -436,7 +654,7 @@ export default function ProjectView({
                   </>
                 )}
               </Button>
-              {!!titleWebUi && (
+              {!!tiltWebUi && (
                 <Button onClick={handleOpenTiltWebUi} variant="outline">
                   <>
                     <Link2 className="mr-2 h-4 w-4" />
@@ -666,7 +884,7 @@ export default function ProjectView({
                       htmlFor="toggle-auto-scroll"
                       className="flex cursor-pointer items-center gap-2"
                     >
-                      Auto-scroll {JSON.stringify(terminalAutoScroll)}
+                      Auto-scroll
                     </Label>
                   </div>
                 )}

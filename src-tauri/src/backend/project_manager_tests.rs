@@ -14,7 +14,7 @@ mod tests {
 
         assert!(result.is_ok());
         let project = result.unwrap();
-        
+
         assert_eq!(project.project.name, "test-project");
         assert_eq!(project.project.workspace_path, workspace_path);
         assert_eq!(project.project.services_path, Some("repos".to_string()));
@@ -131,7 +131,7 @@ mod tests {
         let result = add_service(&mut project, "dev", service.clone());
 
         assert!(result.is_ok());
-        
+
         let env = project.environments.get("dev").unwrap();
         assert_eq!(env.services.len(), 1);
         assert_eq!(env.services[0].name, "test-service");
@@ -170,7 +170,7 @@ mod tests {
 
         // Create project with a service
         let mut project = create_project("test-project", workspace_path, "repos").unwrap();
-        
+
         let service = Service {
             name: "test-service".to_string(),
             port: 3000,
@@ -190,7 +190,7 @@ mod tests {
         // Update the service
         let updated_service = Service {
             name: "test-service".to_string(),
-            port: 4000, // Changed port
+            port: 4000,     // Changed port
             enabled: false, // Changed enabled status
             docker: None,
             k8s: None,
@@ -199,9 +199,10 @@ mod tests {
             repo: None,
             path: None,
             depends_on: None,
-            env: Some(HashMap::from([
-                ("NEW_VAR".to_string(), "value".to_string()),
-            ])),
+            env: Some(HashMap::from([(
+                "NEW_VAR".to_string(),
+                "value".to_string(),
+            )])),
         };
 
         let result = update_service(workspace_path, "dev", "test-service", updated_service);
@@ -211,8 +212,12 @@ mod tests {
         // Verify changes
         let loaded_project = open_project(workspace_path).unwrap();
         let env = loaded_project.environments.get("dev").unwrap();
-        let service = env.services.iter().find(|s| s.name == "test-service").unwrap();
-        
+        let service = env
+            .services
+            .iter()
+            .find(|s| s.name == "test-service")
+            .unwrap();
+
         assert_eq!(service.port, 4000);
         assert_eq!(service.enabled, false);
         assert!(service.env.is_some());
@@ -250,7 +255,7 @@ mod tests {
         let workspace_path = temp_dir.path().to_str().unwrap();
 
         let mut project = create_project("test-project", workspace_path, "repos").unwrap();
-        
+
         let service = Service {
             name: "test-service".to_string(),
             port: 3000,
@@ -271,7 +276,7 @@ mod tests {
         let result = remove_service(&mut project, "dev", "test-service");
 
         assert!(result.is_ok());
-        
+
         let env = project.environments.get("dev").unwrap();
         assert_eq!(env.services.len(), 0);
     }
@@ -291,7 +296,7 @@ mod tests {
         let result = set_shared_env(&mut project, "dev", shared_env.clone());
 
         assert!(result.is_ok());
-        
+
         let env = project.environments.get("dev").unwrap();
         assert_eq!(env.shared_env, shared_env);
     }

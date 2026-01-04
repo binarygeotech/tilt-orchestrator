@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- System tray menu with dynamic project and Tilt status display
+- Tray menu controls for Start/Stop/Restart Tilt operations
+- Service management from tray menu (Enable/Disable, Open in Editor)
+- "Remove from Recent Projects" functionality with confirmation dialog
+- Native Tauri splash screen with gradient design
+- About page with application features and technology stack
+- Two tests for tray API functions (`updateTrayMenu`)
+- One test for `removeRecentProject` API function
 - Initial project setup with Tauri + React + TypeScript
 - Multi-platform desktop application support (macOS, Linux, Windows)
 - Project management with multiple environments (dev, staging, prod)
@@ -17,6 +25,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IDE integration for opening services in code editor
 - Comprehensive test suites for frontend and backend
 - GitHub Actions workflows for automated testing and releases
+
+### Changed
+- TrayIconProvider now prevents duplicate tray icon rendering
+- ProjectView component requires TrayIconProvider wrapper for proper initialization
+
+### Fixed
+- Tray icon duplicate rendering on app reload
+- Initial tray icon rendering showing 2 icons
+- Test mock path for ProjectView component tests
 
 ### Features
 - Visual project creation and management

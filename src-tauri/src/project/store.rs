@@ -16,14 +16,18 @@ pub fn write_json<T: Serialize>(path: &Path, value: &T) -> Result<(), AppError> 
     Ok(())
 }
 
-pub fn rename_project(current_dir: &Path, new_dir: &Path, new_name: &String) -> Result<(), AppError> {
+pub fn rename_project(
+    current_dir: &Path,
+    new_dir: &Path,
+    new_name: &String,
+) -> Result<(), AppError> {
     if fs::exists(new_dir)? {
         panic!("Project with the same name already exists");
         // Err(e) -> println!("Project with the same name already exists: {}", new_name);
     }
 
     if !fs::exists(current_dir)? {
-        panic!("Project operation is not valid", );
+        panic!("Project operation is not valid",);
         // Err(e) => println!("Project operation is not valid");
     }
 

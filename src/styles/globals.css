@@ -165,6 +165,7 @@
   /* Allow text selection in input fields and text areas */
   input,
   textarea,
+  pre,
   [contenteditable="true"] {
     user-select: text;
     -webkit-user-select: text;

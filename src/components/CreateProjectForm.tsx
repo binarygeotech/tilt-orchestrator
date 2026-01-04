@@ -50,6 +50,7 @@ export default function CreateProjectForm({
       console.error("Failed to select workspace:", error)
       await message("Failed to select workspace", {
         title: "Tilt Orchestrator",
+        kind: "error",
       })
     }
   }
@@ -60,7 +61,7 @@ export default function CreateProjectForm({
     setLoading(true)
 
     try {
-      const project = await invoke<Project>("call_backend", {
+      const _project = await invoke("call_backend", {
         command: "createProject",
         args: {
           name: projectName,
@@ -69,16 +70,26 @@ export default function CreateProjectForm({
         },
       })
 
+      const project: Project = JSON.parse(_project as string) as Project
+
       await invoke("add_recent_project_cmd", {
-        name: projectName,
-        path: workspacePath,
+        name: project.project.name,
+        path: project.project.workspace_path,
+      })
+
+      await message("Project created successfully.", {
+        title: "Tilt Orchestrator",
+        kind: "info",
       })
 
       onProjectCreated(project)
     } catch (error: any) {
       setError(error?.toString() || "Failed to create project")
       console.error("Failed to create project:", error)
-      await message("Failed to create project", { title: "Tilt Orchestrator" })
+      await message(`Failed to create project: ${error}`, {
+        title: "Tilt Orchestrator",
+        kind: "error",
+      })
     } finally {
       setLoading(false)
     }

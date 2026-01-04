@@ -27,3 +27,14 @@ pub fn add_recent_project(
 
     save_state(app, &state)
 }
+
+pub fn remove_recent_project(
+    app: &tauri::AppHandle,
+    path: String,
+) -> Result<(), crate::backend::errors::AppError> {
+    let mut state = load_state(app);
+
+    state.recent_projects.retain(|p| p.path != path);
+
+    save_state(app, &state)
+}

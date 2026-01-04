@@ -176,7 +176,13 @@ pub fn generate_tiltfiles(project: &Project, env_name: &str) -> Result<()> {
             .with_context(|| format!("Failed to write {}", service_file_path.display()))?;
 
         // Generate additional files based on deployment type
-        generate_service_files(workspace, env_name, &env_config.shared_env, &svc, services_path)?;
+        generate_service_files(
+            workspace,
+            env_name,
+            &env_config.shared_env,
+            &svc,
+            services_path,
+        )?;
     }
 
     Ok(())
@@ -267,7 +273,10 @@ fn generate_service_tiltfile(
             ("{{DOCKER_SECTION}}", &docker_section),
             ("{{K8S_SECTION}}", &k8s_section),
             ("{{PORT}}", &svc.port.to_string()),
-            ("{{DEPENDENCIES}}", &serde_json::to_string(&svc.depends_on.as_deref().unwrap_or(&vec![])).unwrap()),
+            (
+                "{{DEPENDENCIES}}",
+                &serde_json::to_string(&svc.depends_on.as_deref().unwrap_or(&[])).unwrap(),
+            ),
         ],
     )
 }
@@ -280,7 +289,7 @@ fn generate_service_files(
     services_path: &str,
 ) -> Result<()> {
     let service_dir = Path::new(workspace).join(services_path).join(&svc.name);
-    
+
     // Merge shared and service env vars
     let mut env: HashMap<String, String> = shared_env.clone();
     if let Some(svc_env) = &svc.env {
@@ -310,7 +319,7 @@ fn generate_k8s_deployment(
     env: &HashMap<String, String>,
 ) -> Result<()> {
     let deployment_path = k8s_dir.join(format!("{}-deployment.yaml", service_name));
-    
+
     // Only generate if file doesn't exist
     if deployment_path.exists() {
         return Ok(());
@@ -344,7 +353,7 @@ fn generate_env_file(
     env: &HashMap<String, String>,
 ) -> Result<()> {
     let env_file_path = service_dir.join(format!(".env.{}", env_name));
-    
+
     // Only generate if file doesn't exist
     if env_file_path.exists() {
         return Ok(());

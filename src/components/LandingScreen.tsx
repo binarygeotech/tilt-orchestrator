@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
-import { useAppState } from "@/providers/appstate-provider"
+import { removeRecentProject } from "@/api/api"
+import { useAppState } from "@/providers/AppStateProvider"
 import { invoke } from "@tauri-apps/api/core"
-import { open } from "@tauri-apps/plugin-dialog"
-import { Clock, FolderOpen, Info, Plus, Settings } from "lucide-react"
+import { ask, message, open } from "@tauri-apps/plugin-dialog"
+import { Clock, FolderOpen, Info, Plus, Settings, Trash2 } from "lucide-react"
 
 import { AppState, RecentProject } from "@/types/app"
 
@@ -44,16 +45,12 @@ export default function LandingScreen({
       !contextState.app_started
     ) {
       setState({
-        ...contextState,
+        ...appState,
         app_started: true,
       })
 
       handleRecentProjectClick(appState?.recent_projects[0])
     }
-
-    // if (!contextState.app_started) {
-    //
-    // }
   }, [appState, contextState])
 
   const loadAppState = async () => {
@@ -62,17 +59,37 @@ export default function LandingScreen({
       setAppState(state)
       setAutoOpen(state.preferences.auto_open_last_project)
 
-      if (!contextState.recent_projects) {
-        setState({
-          recent_projects: state.recent_projects,
-          preferences: {
-            auto_open_last_project: state.preferences.auto_open_last_project,
-          },
-          app_started: contextState.app_started || false,
+      setState({
+        recent_projects: state.recent_projects,
+        preferences: state.preferences,
+        app_started: contextState.app_started || false,
+      })
+    } catch (error) {
+      console.error("Failed to load app state:", error)
+    }
+  }
+
+  const handleRemoveFromRecent = async (project: RecentProject) => {
+    try {
+      const confirmed = await ask(
+        `Remove "${project.name}" from recent projects?`,
+        {
+          title: "Remove from Recent",
+          kind: "warning",
+          okLabel: "Remove",
+        }
+      )
+
+      if (confirmed) {
+        await removeRecentProject(project.path).then(async () => {
+          await loadAppState()
         })
       }
     } catch (error) {
-      console.error("Failed to load app state:", error)
+      console.error("Failed to remove from recent:", error)
+      await message("Failed to remove project from recent list", {
+        title: "Tilt Orchestrator",
+      })
     }
   }
 
@@ -194,11 +211,13 @@ export default function LandingScreen({
               appState.recent_projects.slice(0, 10).map((project, index) => (
                 <div
                   key={index}
-                  onClick={() => handleRecentProjectClick(project)}
                   className="cursor-pointer rounded-lg border border-slate-200 p-4 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800"
                 >
                   <div className="flex items-start justify-between">
-                    <div className="space-y-1">
+                    <div
+                      className="flex-1 space-y-1"
+                      onClick={() => handleRecentProjectClick(project)}
+                    >
                       <h4 className="font-semibold text-slate-900 dark:text-slate-100">
                         {project.name}
                       </h4>
@@ -206,9 +225,21 @@ export default function LandingScreen({
                         {project.path}
                       </p>
                     </div>
-                    <span className="text-xs text-slate-500 dark:text-slate-500">
-                      {formatDate(project.last_opened)}
-                    </span>
+                    <div className="flex flex-col items-end justify-between">
+                      <span className="text-xs text-slate-500 dark:text-slate-500">
+                        {formatDate(project.last_opened)}
+                      </span>
+
+                      <Button
+                        variant="ghost"
+                        size={"sm"}
+                        onClick={() => handleRemoveFromRecent(project)}
+                        title="Remove from recent projects"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {/* Remove from Recent */}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))
