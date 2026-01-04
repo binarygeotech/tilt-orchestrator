@@ -47,10 +47,10 @@ jobs:
           )
           
           # Add commits grouped by type
-          FEATURES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^feat" --grep="^feature" --grep-reflog)
-          FIXES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^fix" --grep-reflog)
-          DOCS=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^docs" --grep-reflog)
-          CHORES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --grep="^chore" --grep-reflog)
+          FEATURES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^feat" --grep="^feature")
+          FIXES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^fix")
+          DOCS=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^docs")
+          CHORES=$(git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s (%h)" --extended-regexp --grep="^chore")
           
           if [ ! -z "$FEATURES" ]; then
             CHANGELOG="${CHANGELOG}"$'\n### ✨ Features\n'"${FEATURES}"$'\n'
