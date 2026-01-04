@@ -154,7 +154,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
         }
 
         "openInEditor" => {
-            #[derive(Deserialize)]
+            #[derive(Deserialize, Clone, Debug)]
             struct Args {
                 project: Project,
                 repo_name: String,
@@ -162,6 +162,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
             }
             let args: Args = serde_json::from_value(args)?;
             let services_path = args.project.project.services_path.as_deref();
+            println!("{:?}", &args.clone());
             open_in_editor(
                 std::path::Path::new(&args.project.project.workspace_path),
                 &args.repo_name,

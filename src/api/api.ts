@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core"
 
-import { Project } from "./types/project"
-import { TiltStatus } from "./types/tilt"
+import { Project } from "../types/project"
+import { TiltStatus } from "../types/tilt"
 
 export async function createProject(
   name: string,
@@ -140,4 +140,8 @@ export function getRecentProjects() {
       last_opened: string
     }[]
   >("get_recent_projects")
+}
+
+export function removeRecentProject(path: string) {
+  return invoke("remove_recent_project_cmd", { path })
 }

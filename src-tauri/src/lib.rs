@@ -7,9 +7,13 @@ mod app_state;
 mod backend;
 mod commands;
 mod project;
+mod tray_icon;
 
 use app_state::{load_state, save_state};
-use tauri::{Manager, WindowEvent, AppHandle};
+use tauri::{
+    Manager, WindowEvent, AppHandle
+};
+use tokio::sync::RwLock;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]
@@ -48,6 +52,10 @@ pub fn run() {
             let window = app.get_webview_window("main").unwrap();
             let state = load_state(app.handle());
 
+            let _ = tray_icon::tray_manager::create_tray(&app.handle());
+
+            app.manage(RwLock::new(tray_icon::tray_manager::TrayState::default()));
+
             let _ = window.set_size(tauri::Size::Logical(tauri::LogicalSize {
                 width: state.window.width,
                 height: state.window.height,
@@ -57,8 +65,6 @@ pub fn run() {
                 let _ =
                     window.set_position(tauri::Position::Logical(tauri::LogicalPosition { x, y }));
             }
-                
-            // close_splashscreen();
 
             Ok(())
         })
@@ -91,8 +97,10 @@ pub fn run() {
             commands::get_preferences,
             commands::update_preferences,
             commands::add_recent_project_cmd,
+            commands::remove_recent_project_cmd,
             commands::get_recent_projects,
             close_splashscreen,
+            tray_icon::tray_manager::update_tray_menu,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

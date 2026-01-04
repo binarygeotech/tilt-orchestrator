@@ -7,11 +7,12 @@ import {
   getTiltLogs,
   getTiltState,
   openProject,
+  removeRecentProject,
   startTilt,
   stopTilt,
   updateProject,
   updateService,
-} from "../api"
+} from "../api/api"
 import type { Project } from "../types/project"
 
 vi.mock("@tauri-apps/api/core")
@@ -214,6 +215,18 @@ describe("API Functions", () => {
             project: mockProject,
             env: "dev",
           },
+        })
+      })
+    })
+
+    describe("removeRecentProject", () => {
+      it("should remove a project from recent projects", async () => {
+        vi.mocked(invoke).mockResolvedValue(undefined)
+
+        await removeRecentProject("/test/workspace")
+
+        expect(invoke).toHaveBeenCalledWith("remove_recent_project_cmd", {
+          path: "/test/workspace",
         })
       })
     })

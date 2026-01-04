@@ -1,12 +1,13 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
-import * as api from "../../api"
+import * as api from "../../api/api"
 import ProjectView from "../../components/ProjectView"
-import { AppStateProvider } from "../../providers/appstate-provider"
+import { AppStateProvider } from "../../providers/AppStateProvider"
+import { TrayIconProvider } from "../../providers/TrayIconProvider"
 import type { Project } from "../../types/project"
 
-vi.mock("../../api")
+vi.mock("../../api/api")
 
 const mockProject: Project = {
   project: {
@@ -63,13 +64,15 @@ describe("ProjectView", () => {
 
   const renderComponent = () => {
     return render(
-      <AppStateProvider>
-        <ProjectView
-          project={mockProject}
-          onBack={mockOnBack}
-          onEdit={mockOnEdit}
-        />
-      </AppStateProvider>
+      <TrayIconProvider>
+        <AppStateProvider>
+          <ProjectView
+            project={mockProject}
+            onBack={mockOnBack}
+            onEdit={mockOnEdit}
+          />
+        </AppStateProvider>
+      </TrayIconProvider>
     )
   }
 

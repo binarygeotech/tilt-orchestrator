@@ -1,5 +1,5 @@
 use tauri::command;
-use crate::app_state::{load_state, save_state, add_recent_project};
+use crate::app_state::{load_state, save_state, add_recent_project, remove_recent_project};
 use crate::app_state::model::{RecentProject, Preferences};
 use crate::backend::ipc::handle_ipc;
 
@@ -43,6 +43,16 @@ pub fn add_recent_project_cmd(
     path: String,
 ) -> Result<(), String> {
     add_recent_project(&app, name, path)
+        .map_err(|e| e.to_string())
+}
+
+/// Remove a project from recent projects
+#[command]
+pub fn remove_recent_project_cmd(
+    app: tauri::AppHandle,
+    path: String,
+) -> Result<(), String> {
+    remove_recent_project(&app, path)
         .map_err(|e| e.to_string())
 }
 
