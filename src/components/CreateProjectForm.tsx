@@ -1,79 +1,95 @@
-import { useState } from 'react';
-import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { FolderOpen, ArrowLeft, Loader2 } from 'lucide-react';
-import { Project } from '@/types/project';
+import { useState } from "react"
+import { invoke } from "@tauri-apps/api/core"
+import { message, open } from "@tauri-apps/plugin-dialog"
+import { ArrowLeft, FolderOpen, Loader2 } from "lucide-react"
+
+import { Project } from "@/types/project"
+
+import { Button } from "./ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "./ui/card"
+import { Input } from "./ui/input"
+import { Label } from "./ui/label"
 
 interface CreateProjectFormProps {
-  onBack: () => void;
-  onProjectCreated: (project: Project) => void;
+  onBack: () => void
+  onProjectCreated: (project: Project) => void
 }
 
-export default function CreateProjectForm({ onBack, onProjectCreated }: CreateProjectFormProps) {
-  const [projectName, setProjectName] = useState('');
-  const [workspacePath, setWorkspacePath] = useState('');
-  const [servicesPath, setServicesPath] = useState('repos');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+export default function CreateProjectForm({
+  onBack,
+  onProjectCreated,
+}: CreateProjectFormProps) {
+  const [projectName, setProjectName] = useState("")
+  const [workspacePath, setWorkspacePath] = useState("")
+  const [servicesPath, setServicesPath] = useState("repos")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSelectWorkspace = async () => {
     try {
       const selected = await open({
         directory: true,
         multiple: false,
-        title: 'Select Workspace Directory',
-      });
+        title: "Select Workspace Directory",
+      })
 
-      if (selected && typeof selected === 'string') {
-        setWorkspacePath(selected);
+      if (selected && typeof selected === "string") {
+        setWorkspacePath(selected)
         if (!projectName) {
-          const name = selected.split('/').pop() || '';
-          setProjectName(name);
+          const name = selected.split("/").pop() || ""
+          setProjectName(name)
         }
       }
     } catch (error) {
-      console.error('Failed to select workspace:', error);
+      console.error("Failed to select workspace:", error)
+      await message("Failed to select workspace", {
+        title: "Tilt Orchestrator",
+      })
     }
-  };
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError("")
+    setLoading(true)
 
     try {
-      const project = await invoke<Project>('call_backend', {
-        command: 'createProject',
+      const project = await invoke<Project>("call_backend", {
+        command: "createProject",
         args: {
           name: projectName,
           workspace_path: workspacePath,
           services_path: servicesPath,
         },
-      });
+      })
 
-      await invoke('add_recent_project_cmd', {
+      await invoke("add_recent_project_cmd", {
         name: projectName,
         path: workspacePath,
-      });
+      })
 
-      onProjectCreated(project);
+      onProjectCreated(project)
     } catch (error: any) {
-      setError(error?.toString() || 'Failed to create project');
-      console.error('Failed to create project:', error);
+      setError(error?.toString() || "Failed to create project")
+      console.error("Failed to create project:", error)
+      await message("Failed to create project", { title: "Tilt Orchestrator" })
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const isValid = projectName.trim() && workspacePath.trim() && servicesPath.trim();
+  const isValid =
+    projectName.trim() && workspacePath.trim() && servicesPath.trim()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-8">
-      <div className="max-w-2xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8 dark:from-slate-900 dark:to-slate-800">
+      <div className="mx-auto max-w-2xl space-y-6">
         <Button variant="ghost" onClick={onBack} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back
@@ -83,13 +99,14 @@ export default function CreateProjectForm({ onBack, onProjectCreated }: CreatePr
           <CardHeader>
             <CardTitle>Create New Project</CardTitle>
             <CardDescription>
-              Set up a new Tilt orchestrator project for managing your microservices
+              Set up a new Tilt orchestrator project for managing your
+              microservices
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {error && (
-                <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
+                <div className="rounded-lg bg-red-50 p-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
                   {error}
                 </div>
               )}
@@ -143,7 +160,11 @@ export default function CreateProjectForm({ onBack, onProjectCreated }: CreatePr
               </div>
 
               <div className="flex gap-3">
-                <Button type="submit" disabled={!isValid || loading} className="flex-1">
+                <Button
+                  type="submit"
+                  disabled={!isValid || loading}
+                  className="flex-1"
+                >
                   {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Create Project
                 </Button>
@@ -156,5 +177,5 @@ export default function CreateProjectForm({ onBack, onProjectCreated }: CreatePr
         </Card>
       </div>
     </div>
-  );
+  )
 }

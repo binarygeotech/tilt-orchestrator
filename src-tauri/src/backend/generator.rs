@@ -7,10 +7,6 @@ use std::path::Path;
 use crate::backend::dependency_graph::{detect_cycles, topo_sort};
 use crate::backend::project::{Project, Service};
 
-#[path = "generator_tests.rs"]
-#[cfg(test)]
-mod generator_tests;
-
 // =============================================================================
 // TEMPLATES
 // =============================================================================

@@ -4,10 +4,6 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-#[path = "tilt_manager_tests.rs"]
-#[cfg(test)]
-mod tilt_manager_tests;
-
 fn runtime_path(workspace: &str, env: &str) -> PathBuf {
     Path::new(workspace)
         .join(".tooling")

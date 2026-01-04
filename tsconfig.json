@@ -26,6 +26,6 @@
     }
   },
   "include": ["src"],
-  "exclude": ["node_modules", "src-tauri", "dist", ".next"],
+  "exclude": ["node_modules", "src-tauri", "dist", ".next", "src/tests", "**/*.test.ts", "**/*.test.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

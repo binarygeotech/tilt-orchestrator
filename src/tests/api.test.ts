@@ -1,32 +1,33 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { invoke } from '@tauri-apps/api/core'
+import { invoke } from "@tauri-apps/api/core"
+import { beforeEach, describe, expect, it, vi } from "vitest"
+
 import {
   createProject,
+  generateTiltfiles,
+  getTiltLogs,
+  getTiltState,
   openProject,
-  updateProject,
-  updateService,
   startTilt,
   stopTilt,
-  getTiltState,
-  getTiltLogs,
-  generateTiltfiles,
-} from '../api'
-import type { Project } from '../types/project'
+  updateProject,
+  updateService,
+} from "../api"
+import type { Project } from "../types/project"
 
-vi.mock('@tauri-apps/api/core')
+vi.mock("@tauri-apps/api/core")
 
-describe('API Functions', () => {
+describe("API Functions", () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   const mockProject: Project = {
     project: {
-      name: 'test-project',
-      workspace_path: '/test/workspace',
-      services_path: 'repos',
+      name: "test-project",
+      workspace_path: "/test/workspace",
+      services_path: "repos",
       tilt: {
-        mode: 'local',
+        mode: "root",
       },
     },
     environments: {
@@ -37,48 +38,52 @@ describe('API Functions', () => {
     },
   }
 
-  describe('createProject', () => {
-    it('should create a project with correct parameters', async () => {
+  describe("createProject", () => {
+    it("should create a project with correct parameters", async () => {
       vi.mocked(invoke).mockResolvedValue(mockProject)
 
-      const result = await createProject('test-project', '/test/workspace', 'repos')
+      const result = await createProject(
+        "test-project",
+        "/test/workspace",
+        "repos"
+      )
 
-      expect(invoke).toHaveBeenCalledWith('call_backend', {
-        command: 'createProject',
+      expect(invoke).toHaveBeenCalledWith("call_backend", {
+        command: "createProject",
         args: {
-          name: 'test-project',
-          workspace_path: '/test/workspace',
-          services_path: 'repos',
+          name: "test-project",
+          workspace_path: "/test/workspace",
+          services_path: "repos",
         },
       })
       expect(result).toEqual(mockProject)
     })
   })
 
-  describe('openProject', () => {
-    it('should open a project with workspace path', async () => {
+  describe("openProject", () => {
+    it("should open a project with workspace path", async () => {
       vi.mocked(invoke).mockResolvedValue(mockProject)
 
-      const result = await openProject('/test/workspace')
+      const result = await openProject("/test/workspace")
 
-      expect(invoke).toHaveBeenCalledWith('call_backend', {
-        command: 'openProject',
-        args: { workspace_path: '/test/workspace' },
+      expect(invoke).toHaveBeenCalledWith("call_backend", {
+        command: "openProject",
+        args: { workspace_path: "/test/workspace" },
       })
       expect(result).toEqual(mockProject)
     })
   })
 
-  describe('updateProject', () => {
-    it('should update a project', async () => {
+  describe("updateProject", () => {
+    it("should update a project", async () => {
       vi.mocked(invoke).mockResolvedValue(mockProject)
 
-      const result = await updateProject('/test/workspace', mockProject)
+      const result = await updateProject("/test/workspace", mockProject)
 
-      expect(invoke).toHaveBeenCalledWith('call_backend', {
-        command: 'updateProject',
+      expect(invoke).toHaveBeenCalledWith("call_backend", {
+        command: "updateProject",
         args: {
-          workspace_path: '/test/workspace',
+          workspace_path: "/test/workspace",
           project: mockProject,
         },
       })
@@ -86,24 +91,24 @@ describe('API Functions', () => {
     })
   })
 
-  describe('updateService', () => {
-    it('should update a service', async () => {
-      const mockService = { name: 'test-service', port: 3000, enabled: true }
+  describe("updateService", () => {
+    it("should update a service", async () => {
+      const mockService = { name: "test-service", port: 3000, enabled: true }
       vi.mocked(invoke).mockResolvedValue(mockProject)
 
       const result = await updateService(
-        '/test/workspace',
-        'dev',
-        'test-service',
+        "/test/workspace",
+        "dev",
+        "test-service",
         mockService
       )
 
-      expect(invoke).toHaveBeenCalledWith('call_backend', {
-        command: 'updateService',
+      expect(invoke).toHaveBeenCalledWith("call_backend", {
+        command: "updateService",
         args: {
-          workspace_path: '/test/workspace',
-          env: 'dev',
-          service_name: 'test-service',
+          workspace_path: "/test/workspace",
+          env: "dev",
+          service_name: "test-service",
           service: mockService,
         },
       })
@@ -111,103 +116,103 @@ describe('API Functions', () => {
     })
   })
 
-  describe('Tilt operations', () => {
-    describe('startTilt', () => {
-      it('should start Tilt with project and environment', async () => {
+  describe("Tilt operations", () => {
+    describe("startTilt", () => {
+      it("should start Tilt with project and environment", async () => {
         vi.mocked(invoke).mockResolvedValue(undefined)
 
-        await startTilt(mockProject, 'dev')
+        await startTilt(mockProject, "dev")
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'startTilt',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "startTilt",
           args: {
             project: mockProject,
-            env: 'dev',
+            env: "dev",
           },
         })
       })
     })
 
-    describe('stopTilt', () => {
-      it('should stop Tilt with project and environment', async () => {
+    describe("stopTilt", () => {
+      it("should stop Tilt with project and environment", async () => {
         vi.mocked(invoke).mockResolvedValue(undefined)
 
-        await stopTilt(mockProject, 'dev')
+        await stopTilt(mockProject, "dev")
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'stopTilt',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "stopTilt",
           args: {
             project: mockProject,
-            env: 'dev',
+            env: "dev",
           },
         })
       })
     })
 
-    describe('getTiltState', () => {
-      it('should get Tilt state', async () => {
-        const mockState = { status: 'running' }
+    describe("getTiltState", () => {
+      it("should get Tilt state", async () => {
+        const mockState = { status: "running" }
         vi.mocked(invoke).mockResolvedValue(mockState)
 
-        const result = await getTiltState(mockProject, 'dev')
+        const result = await getTiltState(mockProject, "dev")
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'getTiltState',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "reconcileTiltState",
           args: {
             project: mockProject,
-            env: 'dev',
+            env: "dev",
           },
         })
         expect(result).toEqual(mockState)
       })
     })
 
-    describe('getTiltLogs', () => {
-      it('should get Tilt logs with default limit', async () => {
-        const mockLogs = JSON.stringify({ logs: ['log1', 'log2'] })
+    describe("getTiltLogs", () => {
+      it("should get Tilt logs with default limit", async () => {
+        const mockLogs = JSON.stringify({ logs: ["log1", "log2"] })
         vi.mocked(invoke).mockResolvedValue(mockLogs)
 
-        const result = await getTiltLogs(mockProject, 'dev')
+        const result = await getTiltLogs(mockProject, "dev")
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'getTiltLogs',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "getTiltLogs",
           args: {
             project: mockProject,
-            env: 'dev',
-            limit: 500,
+            env: "dev",
+            lines: undefined,
           },
         })
         expect(result).toEqual(mockLogs)
       })
 
-      it('should get Tilt logs with custom limit', async () => {
-        const mockLogs = JSON.stringify({ logs: ['log1'] })
+      it("should get Tilt logs with custom limit", async () => {
+        const mockLogs = JSON.stringify({ logs: ["log1"] })
         vi.mocked(invoke).mockResolvedValue(mockLogs)
 
-        await getTiltLogs(mockProject, 'dev', 100)
+        await getTiltLogs(mockProject, "dev", 100)
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'getTiltLogs',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "getTiltLogs",
           args: {
             project: mockProject,
-            env: 'dev',
-            limit: 100,
+            env: "dev",
+            lines: 100,
           },
         })
       })
     })
 
-    describe('generateTiltfiles', () => {
-      it('should generate Tiltfiles', async () => {
+    describe("generateTiltfiles", () => {
+      it("should generate Tiltfiles", async () => {
         vi.mocked(invoke).mockResolvedValue(undefined)
 
-        await generateTiltfiles(mockProject, 'dev')
+        await generateTiltfiles(mockProject, "dev")
 
-        expect(invoke).toHaveBeenCalledWith('call_backend', {
-          command: 'generateTiltfiles',
+        expect(invoke).toHaveBeenCalledWith("call_backend", {
+          command: "generateTiltfiles",
           args: {
             project: mockProject,
-            env: 'dev',
+            env: "dev",
           },
         })
       })
