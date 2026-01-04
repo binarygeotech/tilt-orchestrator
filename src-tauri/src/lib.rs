@@ -10,9 +10,7 @@ mod project;
 mod tray_icon;
 
 use app_state::{load_state, save_state};
-use tauri::{
-    Manager, WindowEvent, AppHandle
-};
+use tauri::{AppHandle, Manager, WindowEvent};
 use tokio::sync::RwLock;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -28,7 +26,8 @@ async fn close_splashscreen(window: tauri::Window) -> Result<(), String> {
         splashscreen.close().map_err(|e| e.to_string())?;
     }
     // Show main window
-    window.get_webview_window("main")
+    window
+        .get_webview_window("main")
         .ok_or("main window not found")?
         .show()
         .map_err(|e| e.to_string())?;
@@ -77,7 +76,6 @@ pub fn run() {
                 let _ = save_state(app, &state);
             }
             WindowEvent::Resized(_) => {
-
                 let app = window.app_handle();
                 let mut state = load_state(app);
                 if let Ok(size) = window.outer_size() {

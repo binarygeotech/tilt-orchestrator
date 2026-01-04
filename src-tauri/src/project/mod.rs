@@ -9,11 +9,11 @@ pub mod paths;
 pub mod store;
 
 use crate::backend::errors::AppError;
+use crate::backend::generator::generate_tiltfiles;
+use crate::backend::git::clone_repo;
 use crate::backend::project::{Environment, Project, ProjectInfo, Service, Tilt, TiltMode};
 use crate::project::paths::*;
-use crate::project::store::{read_json, rename_project, write_json, assert_service_path};
-use crate::backend::generator::{generate_tiltfiles};
-use crate::backend::git::clone_repo;
+use crate::project::store::{assert_service_path, read_json, rename_project, write_json};
 
 pub fn __create_project(info: ProjectInfo) -> Result<(), AppError> {
     let root = project_root(&info.workspace_path, &info.name);
@@ -93,26 +93,28 @@ pub fn create_project(
         // Clone repositories and create service directories for each service
         for service in environment.services.iter() {
             let service_dir = project_path.join(services_path).join(&service.name);
-            
+
             // Create service directory
             fs::create_dir_all(&service_dir)?;
-            
+
             // Clone repository if configured
             if let Some(repo) = &service.repo {
                 let rt = tokio::runtime::Runtime::new().map_err(|e| {
                     AppError::Io(io::Error::new(io::ErrorKind::Other, e.to_string()))
                 })?;
-                
+
                 rt.block_on(async {
                     clone_repo(
                         &repo.url,
                         service_dir.to_str().unwrap(),
-                        repo.branch.as_deref()
-                    ).await
-                }).map_err(|e| AppError::Io(e))?;
+                        repo.branch.as_deref(),
+                    )
+                    .await
+                })
+                .map_err(|e| AppError::Io(e))?;
             }
         }
-        
+
         // Generate tiltfiles after setting up services
         let _ = generate_tiltfiles(&project, key);
     }
@@ -145,14 +147,15 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
 
     for (key, environment) in project.environments.iter() {
         // Get old environment to compare services
-        let old_env: Environment = read_json(&env_file(Path::new(&project_path), &key))
-            .unwrap_or(Environment {
+        let old_env: Environment =
+            read_json(&env_file(Path::new(&project_path), &key)).unwrap_or(Environment {
                 shared_env: HashMap::new(),
                 services: vec![],
             });
 
         // Find new services (not in old environment)
-        let old_service_names: Vec<String> = old_env.services.iter().map(|s| s.name.clone()).collect();
+        let old_service_names: Vec<String> =
+            old_env.services.iter().map(|s| s.name.clone()).collect();
         let new_services: Vec<&Service> = environment
             .services
             .iter()
@@ -161,7 +164,7 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
 
         // Write environment
         write_json(&env_file(Path::new(&project_path), &key), &environment)?;
-        
+
         // Generate tiltfiles
         let _ = generate_tiltfiles(&project, key);
 
@@ -169,33 +172,41 @@ pub fn update_project(workspace_path: &str, project: &Project) -> Result<Project
         let env_services: Vec<Service> = environment.services.clone();
 
         for service in env_services.iter() {
-            let service_dir = Path::new(&project_path).join(services_path).join(&service.name);
-            
+            let service_dir = Path::new(&project_path)
+                .join(services_path)
+                .join(&service.name);
+
             // Create service directory if it doesn't exist
             if !service_dir.exists() {
                 fs::create_dir_all(&service_dir)?;
             }
-            
+
             // Clone repository for new services if configured
             if new_services.iter().any(|s| s.name == service.name) {
                 if let Some(repo) = &service.repo {
                     // Only clone if directory is empty
-                    if service_dir.read_dir().map(|mut i| i.next().is_none()).unwrap_or(true) {
+                    if service_dir
+                        .read_dir()
+                        .map(|mut i| i.next().is_none())
+                        .unwrap_or(true)
+                    {
                         let rt = tokio::runtime::Runtime::new().map_err(|e| {
                             AppError::Io(io::Error::new(io::ErrorKind::Other, e.to_string()))
                         })?;
-                        
+
                         rt.block_on(async {
                             clone_repo(
                                 &repo.url,
                                 service_dir.to_str().unwrap(),
-                                repo.branch.as_deref()
-                            ).await
-                        }).map_err(|e| AppError::Io(e))?;
+                                repo.branch.as_deref(),
+                            )
+                            .await
+                        })
+                        .map_err(|e| AppError::Io(e))?;
                     }
                 }
             }
-            
+
             // Ensure custom path exists if specified
             if let Some(path) = &service.path {
                 assert_service_path(Path::new(path))?;
@@ -258,34 +269,35 @@ pub fn update_service(
 ) -> Result<Project, AppError> {
     let project_path = Path::new(workspace_path);
     let mut project: Project = read_json(&project_file(project_path))?;
-    
+
     // Get the environment
-    let environment = project
-        .environments
-        .get_mut(env)
-        .ok_or_else(|| AppError::Io(io::Error::new(
+    let environment = project.environments.get_mut(env).ok_or_else(|| {
+        AppError::Io(io::Error::new(
             io::ErrorKind::NotFound,
-            format!("Environment {} not found", env)
-        )))?;
-    
+            format!("Environment {} not found", env),
+        ))
+    })?;
+
     // Find and update the service
     let service_index = environment
         .services
         .iter()
         .position(|s| s.name == service_name)
-        .ok_or_else(|| AppError::Io(io::Error::new(
-            io::ErrorKind::NotFound,
-            format!("Service {} not found in environment {}", service_name, env)
-        )))?;
-    
+        .ok_or_else(|| {
+            AppError::Io(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!("Service {} not found in environment {}", service_name, env),
+            ))
+        })?;
+
     environment.services[service_index] = updated_service.clone();
-    
+
     // Write updated environment back to disk
     write_json(&env_file(project_path, env), environment)?;
-    
+
     // Regenerate Tiltfiles for this environment
     let _ = generate_tiltfiles(&project, env);
-    
+
     Ok(project)
 }
 
