@@ -85,7 +85,7 @@ fn check_tilt_process_running(pid: Option<u32>) -> bool {
             println!("{}", pid_val);
             // On Windows, just assume it's running if we have a PID
             
-            pid_val > 0
+            pid_val > 0;
         }
     } else {
         false
