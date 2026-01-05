@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use std::fs;
 use std::io;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
+use chrono::Local;
 
 // mod backend;
 pub mod paths;
@@ -264,6 +265,17 @@ pub fn is_valid_project(path: &str) -> bool {
     project_file(project_path).exists()
 }
 
+/// Create a timestamped backup path that doesn't overwrite existing backups
+fn create_timestamped_backup_path(original_path: &Path) -> PathBuf {
+    let timestamp = Local::now().format("%Y%m%d_%H%M%S");
+    let parent = original_path.parent().unwrap_or_else(|| Path::new("."));
+    let name = original_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("unknown");
+    parent.join(format!("{}.backup.{}", name, timestamp))
+}
+
 /// Initialize an existing directory as a Tilt Orchestrator project
 pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Project, AppError> {
     let project_path = Path::new(path);
@@ -282,14 +294,14 @@ pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Pr
     // Backup existing Tiltfile if it exists
     let existing_tiltfile = project_path.join("Tiltfile");
     if existing_tiltfile.exists() {
-        let backup_path = project_path.join("Tiltfile.backup");
+        let backup_path = create_timestamped_backup_path(&existing_tiltfile);
         fs::rename(&existing_tiltfile, &backup_path)?;
     }
 
     // Backup existing tilt directory if it exists
     let existing_tilt_dir = project_path.join("tilt");
     if existing_tilt_dir.exists() && !existing_tilt_dir.join("..").join("project.json").exists() {
-        let backup_path = project_path.join("tilt.backup");
+        let backup_path = create_timestamped_backup_path(&existing_tilt_dir);
         fs::rename(&existing_tilt_dir, &backup_path)?;
     }
 
