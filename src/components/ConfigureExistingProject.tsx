@@ -38,7 +38,9 @@ export default function ConfigureExistingProject({
 
     try {
       const project = await initializeExistingProject(projectPath, servicesPath)
-      onInitialized(JSON.parse(project as any))
+      const normalizedProject: Project =
+        typeof project === "string" ? (JSON.parse(project) as Project) : (project as Project)
+      onInitialized(normalizedProject)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to initialize project"
