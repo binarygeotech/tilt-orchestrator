@@ -41,7 +41,9 @@ export async function openProject(workspace_path: string): Promise<any> {
   }) as Promise<Project>
 }
 
-export async function isValidProject(path: string): Promise<{ valid: boolean }> {
+export async function isValidProject(
+  path: string
+): Promise<{ valid: boolean }> {
   return invoke("call_backend", {
     command: "isValidProject",
     args: { path },

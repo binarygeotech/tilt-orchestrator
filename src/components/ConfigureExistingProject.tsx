@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react"
+import { useEffect, useState } from "react"
+
 import { initializeExistingProject } from "../api/api"
 import { Project } from "../types/project"
 
@@ -21,7 +22,8 @@ export default function ConfigureExistingProject({
   useEffect(() => {
     // Extract project name from directory path
     const pathParts = projectPath.split(/[/\\]/)
-    const dirName = pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2]
+    const dirName =
+      pathParts[pathParts.length - 1] || pathParts[pathParts.length - 2]
     setProjectName(dirName)
   }, [projectPath])
 
@@ -38,19 +40,21 @@ export default function ConfigureExistingProject({
       const project = await initializeExistingProject(projectPath, servicesPath)
       onInitialized(JSON.parse(project as any))
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to initialize project")
+      setError(
+        err instanceof Error ? err.message : "Failed to initialize project"
+      )
     } finally {
       setIsInitializing(false)
     }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8">
-        <h1 className="text-3xl font-bold text-center mb-2">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
+        <h1 className="mb-2 text-center text-3xl font-bold">
           Initialize Project for Tilt Orchestrator
         </h1>
-        <p className="text-gray-600 text-center mb-6">
+        <p className="mb-6 text-center text-gray-600">
           Configure the project settings to get started
         </p>
 
@@ -58,7 +62,7 @@ export default function ConfigureExistingProject({
           <div>
             <label
               htmlFor="projectPath"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Project Path
             </label>
@@ -67,14 +71,14 @@ export default function ConfigureExistingProject({
               type="text"
               value={projectPath}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+              className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500"
             />
           </div>
 
           <div>
             <label
               htmlFor="projectName"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Project Name
             </label>
@@ -83,9 +87,9 @@ export default function ConfigureExistingProject({
               type="text"
               value={projectName}
               disabled
-              className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-500"
+              className="w-full rounded-md border border-gray-300 bg-gray-100 px-3 py-2 text-gray-500"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="mt-1 text-sm text-gray-500">
               Auto-detected from directory name
             </p>
           </div>
@@ -93,7 +97,7 @@ export default function ConfigureExistingProject({
           <div>
             <label
               htmlFor="servicesPath"
-              className="block text-sm font-medium text-gray-700 mb-1"
+              className="mb-1 block text-sm font-medium text-gray-700"
             >
               Services Path
             </label>
@@ -104,44 +108,44 @@ export default function ConfigureExistingProject({
               onChange={(e) => setServicesPath(e.target.value)}
               placeholder="e.g., repos, services, src"
               disabled={isInitializing}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-blue-500"
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="mt-1 text-sm text-gray-500">
               Relative path to the directory containing your microservices
             </p>
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-red-800 text-sm">{error}</p>
+            <div className="rounded-md border border-red-200 bg-red-50 p-3">
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
             <p className="text-sm text-blue-800">
-              <strong>Note:</strong> If an existing Tiltfile or tilt/ directory is found,
-              it will be backed up with a .backup extension.
+              <strong>Note:</strong> If an existing Tiltfile or tilt/ directory
+              is found, it will be backed up with a .backup extension.
             </p>
           </div>
         </div>
 
-        <div className="flex gap-3 mt-6">
+        <div className="mt-6 flex gap-3">
           <button
             onClick={onCancel}
             disabled={isInitializing}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleInitialize}
             disabled={isInitializing}
-            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            className="flex flex-1 items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isInitializing ? (
               <>
                 <svg
-                  className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                  className="mr-2 -ml-1 h-4 w-4 animate-spin text-white"
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
                   viewBox="0 0 24 24"
