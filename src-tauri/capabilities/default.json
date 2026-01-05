@@ -12,6 +12,45 @@
     "opener:allow-open-url",
     "core:window:default",
     "core:window:allow-start-dragging",
-    "core:app:allow-default-window-icon"
+    "core:app:allow-default-window-icon",
+    "os:default",
+    "fs:default",
+    "shell:default",
+    "shell:allow-execute",
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "name": "tilt",
+          "cmd": "",
+          "args": true
+        },
+        {
+          "name": "which",
+          "cmd": "",
+          "args": true
+        },
+        {
+          "name": "where",
+          "cmd": "",
+          "args": true
+        },
+        {
+          "name": "kill",
+          "cmd": "",
+          "args": true
+        },
+        {
+          "name": "tasklist",
+          "cmd": "",
+          "args": true
+        },
+        {
+          "name": "taskkill",
+          "cmd": "",
+          "args": true
+        }
+      ]
+    }
   ]
 }

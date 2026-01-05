@@ -26,6 +26,8 @@ pub struct RecentProject {
 pub struct Preferences {
     pub auto_open_last_project: bool,
     pub default_editor: Option<String>,
+    pub tilt_path: Option<String>,
+    pub editor_path: Option<String>,
 }
 
 impl Default for WindowState {

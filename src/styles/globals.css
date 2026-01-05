@@ -166,6 +166,7 @@
   input,
   textarea,
   pre,
+  code,
   [contenteditable="true"] {
     user-select: text;
     -webkit-user-select: text;

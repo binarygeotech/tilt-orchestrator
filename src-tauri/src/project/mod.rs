@@ -258,6 +258,85 @@ pub fn load_project_info(root: &str) -> Result<Project, AppError> {
     Ok(p)
 }
 
+/// Check if a directory is a valid Tilt Orchestrator project
+pub fn is_valid_project(path: &str) -> bool {
+    let project_path = Path::new(path);
+    project_file(project_path).exists()
+}
+
+/// Initialize an existing directory as a Tilt Orchestrator project
+pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Project, AppError> {
+    let project_path = Path::new(path);
+
+    // Extract project name from directory name
+    let name = project_path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .ok_or_else(|| {
+            AppError::Io(io::Error::new(
+                io::ErrorKind::InvalidInput,
+                "Invalid project path",
+            ))
+        })?;
+
+    // Backup existing Tiltfile if it exists
+    let existing_tiltfile = project_path.join("Tiltfile");
+    if existing_tiltfile.exists() {
+        let backup_path = project_path.join("Tiltfile.backup");
+        fs::rename(&existing_tiltfile, &backup_path)?;
+    }
+
+    // Backup existing tilt directory if it exists
+    let existing_tilt_dir = project_path.join("tilt");
+    if existing_tilt_dir.exists() && !existing_tilt_dir.join("..").join("project.json").exists() {
+        let backup_path = project_path.join("tilt.backup");
+        fs::rename(&existing_tilt_dir, &backup_path)?;
+    }
+
+    // Create necessary directories
+    let dirs = [services_path, "tilt", ".tooling"];
+    for dir in dirs.iter() {
+        fs::create_dir_all(project_path.join(dir))?;
+    }
+
+    // Create environments directory
+    fs::create_dir_all(project_path.join("environments"))?;
+
+    // Create default environments
+    let mut environments = HashMap::new();
+    for env_name in ["dev", "staging", "prod"] {
+        environments.insert(
+            env_name.to_string(),
+            Environment {
+                shared_env: HashMap::new(),
+                services: Vec::new(),
+            },
+        );
+        write_json(&env_file(project_path, env_name), &environments[env_name])?;
+    }
+
+    let project = Project {
+        project: ProjectInfo {
+            name: name.to_string(),
+            workspace_path: project_path.to_string_lossy().to_string(),
+            tilt: Tilt {
+                mode: TiltMode::Root,
+            },
+            services_path: Some(services_path.to_string()),
+        },
+        environments,
+    };
+
+    write_json(&project_file(project_path), &project)?;
+
+    // Generate Tiltfiles for all environments
+    for env_name in ["dev", "staging", "prod"] {
+        generate_tiltfiles(&project, env_name).map_err(|e| std::io::Error::other(e.to_string()))?;
+    }
+
+    Ok(project)
+}
+
 /// Update a specific service in an environment
 pub fn update_service(
     workspace_path: &str,

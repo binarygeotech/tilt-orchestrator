@@ -1,18 +1,45 @@
+use crate::app_state::load_state;
 use crate::backend::generator::{generate_tiltfiles, reorder_services};
 use crate::backend::git::clone_repo;
 use crate::backend::project::{Project, Service};
 use crate::backend::tilt_manager::{
-    get_tilt_logs, read_state, reconcile_tilt_state, restart_tilt, start_tilt, stop_tilt,
+    check_tilt_installed, get_tilt_logs, read_state, reconcile_tilt_state, restart_tilt,
+    start_tilt, stop_tilt, validate_executable_path,
 };
 use crate::project::{
-    create_project, load_project_info, open_in_editor, update_project, update_service,
+    create_project, initialize_existing_project, is_valid_project, load_project_info,
+    open_in_editor, update_project, update_service,
 };
 use anyhow::Result;
 use serde::Deserialize;
 
 /// Central IPC command handler
-pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_json::Value> {
+pub async fn handle_ipc(
+    app: tauri::AppHandle,
+    command: &str,
+    args: serde_json::Value,
+) -> Result<serde_json::Value> {
     match command {
+        "checkTiltInstalled" => {
+            let installation = check_tilt_installed(&app).await?;
+            Ok(serde_json::to_value(installation)?)
+        }
+
+        "validateExecutablePath" => {
+            #[derive(Deserialize)]
+            struct Args {
+                path: String,
+            }
+            let args: Args = serde_json::from_value(args)?;
+            let param: String = if args.path.clone().contains("tilt") {
+                "version".to_string()
+            } else {
+                "--version".to_string()
+            };
+            let version = validate_executable_path(&app, &args.path, Some(&param)).await?;
+            Ok(serde_json::json!({ "valid": true, "version": version }))
+        }
+
         "generateTiltfiles" => {
             #[derive(Deserialize)]
             struct Args {
@@ -31,7 +58,15 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 env: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            start_tilt(&args.project.project.workspace_path, &args.env)?;
+            let state = load_state(&app);
+            let tilt_path = state.preferences.tilt_path.as_deref();
+            start_tilt(
+                &args.project.project.workspace_path,
+                &args.env,
+                &app,
+                tilt_path,
+            )
+            .await?;
             Ok(serde_json::json!(null))
         }
 
@@ -42,7 +77,7 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 env: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            stop_tilt(&args.project.project.workspace_path, &args.env)?;
+            stop_tilt(&args.project.project.workspace_path, &args.env, &app).await?;
             Ok(serde_json::json!(null))
         }
 
@@ -53,7 +88,15 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 env: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            restart_tilt(&args.project.project.workspace_path, &args.env)?;
+            let state = load_state(&app);
+            let tilt_path = state.preferences.tilt_path.as_deref();
+            restart_tilt(
+                &args.project.project.workspace_path,
+                &args.env,
+                &app,
+                tilt_path,
+            )
+            .await?;
             Ok(serde_json::json!(null))
         }
 
@@ -75,7 +118,8 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 env: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            let status = reconcile_tilt_state(&args.project.project.workspace_path, &args.env)?;
+            let status =
+                reconcile_tilt_state(&args.project.project.workspace_path, &args.env, &app).await?;
             Ok(serde_json::to_value(status)?)
         }
 
@@ -128,6 +172,28 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
             Ok(serde_json::to_value(project)?)
         }
 
+        "isValidProject" => {
+            #[derive(Deserialize)]
+            struct Args {
+                path: String,
+            }
+            let args: Args = serde_json::from_value(args)?;
+            let is_valid = is_valid_project(&args.path);
+            Ok(serde_json::json!({ "valid": is_valid }))
+        }
+
+        "initializeExistingProject" => {
+            #[derive(Deserialize)]
+            struct Args {
+                path: String,
+                services_path: String,
+            }
+            let args: Args = serde_json::from_value(args)?;
+            let project = initialize_existing_project(&args.path, &args.services_path)
+                .map_err(|e| anyhow::anyhow!("Failed to initialize project: {}", e))?;
+            Ok(serde_json::to_value(project)?)
+        }
+
         "updateProject" => {
             #[derive(Deserialize)]
             struct Args {
@@ -167,12 +233,20 @@ pub async fn handle_ipc(command: &str, args: serde_json::Value) -> Result<serde_
                 editor: Option<String>,
             }
             let args: Args = serde_json::from_value(args)?;
+            let state = load_state(&app);
+
+            // Priority: explicit editor param > editor_path from settings > default_editor from settings
+            let editor = args
+                .editor
+                .as_deref()
+                .or(state.preferences.editor_path.as_deref())
+                .or(state.preferences.default_editor.as_deref());
+
             let services_path = args.project.project.services_path.as_deref();
-            println!("{:?}", &args.clone());
             open_in_editor(
                 std::path::Path::new(&args.project.project.workspace_path),
                 &args.repo_name,
-                args.editor.as_deref(),
+                editor,
                 services_path,
             )?;
             Ok(serde_json::json!(null))
