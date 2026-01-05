@@ -318,7 +318,6 @@ export default function ProjectView({
     try {
       // Get editor preference from app state
       const editor = appState.preferences.default_editor || undefined
-      console.log(appState)
 
       const servicePath = service.path || service.name
       await invoke("call_backend", {
@@ -384,7 +383,8 @@ export default function ProjectView({
 
   // Initial log fetch
   useEffect(() => {
-    fetchLogs()
+    handleRefreshStatus()
+    // fetchLogs()
   }, [selectedEnv])
 
   const initListeners = async () => {
