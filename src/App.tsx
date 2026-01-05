@@ -3,8 +3,8 @@ import { AppStateProvider } from "@/providers/AppStateProvider"
 import { invoke } from "@tauri-apps/api/core"
 import { ask, message } from "@tauri-apps/plugin-dialog"
 
-import { Project } from "@/types/project"
 import { AppState } from "@/types/app"
+import { Project } from "@/types/project"
 import About from "@/components/About"
 import ConfigureExistingProject from "@/components/ConfigureExistingProject"
 import CreateProjectForm from "@/components/CreateProjectForm"
@@ -85,14 +85,13 @@ function App() {
   const handleOpenProject = async (path: string, _name: string) => {
     try {
       // First check if it's a valid TO project
-      const validation = await isValidProject(path)
-        .then((response: any) => {
-          if (typeof response === 'string') {
-            return JSON.parse(response)
-          } else {
-            return response
-          }
-        })
+      const validation = await isValidProject(path).then((response: any) => {
+        if (typeof response === "string") {
+          return JSON.parse(response)
+        } else {
+          return response
+        }
+      })
 
       if (!validation.valid) {
         // Not a valid TO project - ask user if they want to initialize it

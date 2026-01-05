@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react"
+import { validateExecutablePath } from "@/api/api"
 import { invoke } from "@tauri-apps/api/core"
 import {
   ArrowLeft,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react"
 
 import { AppState } from "@/types/app"
-import { validateExecutablePath } from "@/api/api"
 
 import { Button } from "./ui/button"
 import {
@@ -49,7 +49,9 @@ export default function Settings({ onBack }: SettingsProps) {
     version?: string
     error?: string
   } | null>(null)
-  const [currentTiltVersion, setCurrentTiltVersion] = useState<string | null>(null)
+  const [currentTiltVersion, setCurrentTiltVersion] = useState<string | null>(
+    null
+  )
 
   useEffect(() => {
     loadSettings()
@@ -87,7 +89,9 @@ export default function Settings({ onBack }: SettingsProps) {
     setValidatingTilt(true)
     try {
       const _result = await validateExecutablePath(path)
-      const result = (_result as any).includes(':') ? JSON.parse(_result as any) : { valid: false, version: null };
+      const result = (_result as any).includes(":")
+        ? JSON.parse(_result as any)
+        : { valid: false, version: null }
 
       setTiltValidation({ valid: true, version: result.version })
       setCurrentTiltVersion(result.version)
@@ -153,10 +157,11 @@ export default function Settings({ onBack }: SettingsProps) {
           <div className="flex items-center gap-3">
             {saveMessage && (
               <span
-                className={`text-sm ${saveMessage.includes("Failed")
+                className={`text-sm ${
+                  saveMessage.includes("Failed")
                     ? "text-red-600 dark:text-red-400"
                     : "text-green-600 dark:text-green-400"
-                  }`}
+                }`}
               >
                 {saveMessage}
               </span>
@@ -223,14 +228,14 @@ export default function Settings({ onBack }: SettingsProps) {
                     }
                   />
                   {validatingTilt && (
-                    <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-slate-400" />
+                    <Loader2 className="absolute top-3 right-3 h-4 w-4 animate-spin text-slate-400" />
                   )}
                   {!validatingTilt && tiltValidation && (
                     <>
                       {tiltValidation.valid ? (
-                        <CheckCircle2 className="absolute right-3 top-3 h-4 w-4 text-green-500" />
+                        <CheckCircle2 className="absolute top-3 right-3 h-4 w-4 text-green-500" />
                       ) : (
-                        <XCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
+                        <XCircle className="absolute top-3 right-3 h-4 w-4 text-red-500" />
                       )}
                     </>
                   )}
@@ -251,10 +256,18 @@ export default function Settings({ onBack }: SettingsProps) {
                   </p>
                   <ul className="ml-4 list-disc space-y-1 text-slate-600 dark:text-slate-400">
                     <li>
-                      <strong>macOS/Linux:</strong> Run <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">which tilt</code> in Terminal
+                      <strong>macOS/Linux:</strong> Run{" "}
+                      <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">
+                        which tilt
+                      </code>{" "}
+                      in Terminal
                     </li>
                     <li>
-                      <strong>Windows:</strong> Run <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">where tilt</code> in Command Prompt
+                      <strong>Windows:</strong> Run{" "}
+                      <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">
+                        where tilt
+                      </code>{" "}
+                      in Command Prompt
                     </li>
                   </ul>
                   <div className="mt-2 border-t pt-2">
@@ -271,7 +284,9 @@ export default function Settings({ onBack }: SettingsProps) {
                       <li>
                         <strong>Linux:</strong>{" "}
                         <code className="rounded bg-slate-200 px-1 dark:bg-slate-800">
-                          curl -fsSL https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh | bash
+                          curl -fsSL
+                          https://raw.githubusercontent.com/tilt-dev/tilt/master/scripts/install.sh
+                          | bash
                         </code>
                       </li>
                       <li className="flex items-center gap-1">
@@ -320,14 +335,14 @@ export default function Settings({ onBack }: SettingsProps) {
                       }
                     />
                     {validatingEditor && (
-                      <Loader2 className="absolute right-3 top-3 h-4 w-4 animate-spin text-slate-400" />
+                      <Loader2 className="absolute top-3 right-3 h-4 w-4 animate-spin text-slate-400" />
                     )}
                     {!validatingEditor && editorValidation && (
                       <>
                         {editorValidation.valid ? (
-                          <CheckCircle2 className="absolute right-3 top-3 h-4 w-4 text-green-500" />
+                          <CheckCircle2 className="absolute top-3 right-3 h-4 w-4 text-green-500" />
                         ) : (
-                          <XCircle className="absolute right-3 top-3 h-4 w-4 text-red-500" />
+                          <XCircle className="absolute top-3 right-3 h-4 w-4 text-red-500" />
                         )}
                       </>
                     )}
@@ -343,7 +358,9 @@ export default function Settings({ onBack }: SettingsProps) {
                     </p>
                   )}
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Full path to your code editor executable. Use <code>which code</code> (macOS/Linux) or <code>where code</code> (Windows) to find it.
+                    Full path to your code editor executable. Use{" "}
+                    <code>which code</code> (macOS/Linux) or{" "}
+                    <code>where code</code> (Windows) to find it.
                   </p>
                 </div>
               </div>
@@ -372,7 +389,9 @@ export default function Settings({ onBack }: SettingsProps) {
             {/* Info Section */}
             <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-950">
               <p className="text-sm text-blue-900 dark:text-blue-100">
-                <strong>Tip:</strong> Configure Tilt and Editor paths for seamless integration. The app will automatically use these paths when starting Tilt or opening service directories.
+                <strong>Tip:</strong> Configure Tilt and Editor paths for
+                seamless integration. The app will automatically use these paths
+                when starting Tilt or opening service directories.
               </p>
             </div>
           </CardContent>
