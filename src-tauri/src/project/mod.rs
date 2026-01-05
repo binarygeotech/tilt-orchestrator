@@ -268,11 +268,11 @@ pub fn is_valid_project(path: &str) -> bool {
 /// Create a timestamped backup path that doesn't overwrite existing backups
 fn create_timestamped_backup_path(original_path: &Path) -> PathBuf {
     let timestamp = Local::now().format("%Y%m%d_%H%M%S");
-    let parent = original_path.parent().unwrap_or_else(|| Path::new("."));
+    let parent = original_path.parent().unwrap_or(Path::new("."));
     let name = original_path
         .file_name()
         .and_then(|n| n.to_str())
-        .unwrap_or("unknown");
+        .unwrap_or("untitled");
     parent.join(format!("{}.backup.{}", name, timestamp))
 }
 
