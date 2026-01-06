@@ -285,7 +285,13 @@ pub async fn start_tilt(
     let (mut rx, child) = app_handle
         .shell()
         .command(&tilt_path)
-        .args(["up", "-f", tiltfile.to_str().unwrap()])
+        .args([
+            "up",
+            "-f",
+            tiltfile.to_str().ok_or_else(|| {
+                io::Error::new(io::ErrorKind::InvalidInput, "Invalid Tiltfile path")
+            })?,
+        ])
         .current_dir(workspace)
         .spawn()
         .map_err(|e| io::Error::other(e.to_string()))?;
