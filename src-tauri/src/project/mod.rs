@@ -294,14 +294,19 @@ pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Pr
     // Backup existing Tiltfile if it exists
     let existing_tiltfile = project_path.join("Tiltfile");
     if existing_tiltfile.exists() {
-        let backup_path = create_timestamped_backup_path(&existing_tiltfile);
+        let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
+        // This will produce something like "Tiltfile.backup.20250105_123045"
+        let backup_path = existing_tiltfile.with_extension(format!("backup.{}", timestamp));
         fs::rename(&existing_tiltfile, &backup_path)?;
     }
 
     // Backup existing tilt directory if it exists
     let existing_tilt_dir = project_path.join("tilt");
-    if existing_tilt_dir.exists() && !project_path.join("project.json").exists() {
-        let backup_path = create_timestamped_backup_path(&existing_tilt_dir);
+    if existing_tilt_dir.exists() && !existing_tilt_dir.join("..").join("project.json").exists() {
+        let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
+        // This will produce a sibling directory like "tilt.backup.20250105_123045"
+        let backup_dir_name = format!("tilt.backup.{}", timestamp);
+        let backup_path = existing_tilt_dir.with_file_name(backup_dir_name);
         fs::rename(&existing_tilt_dir, &backup_path)?;
     }
 
