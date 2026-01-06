@@ -296,7 +296,7 @@ pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Pr
     if existing_tiltfile.exists() {
         let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
         // This will produce something like "Tiltfile.backup.20250105_123045"
-        let backup_path = existing_tiltfile.with_extension(format!("backup.{}", timestamp));
+        let backup_path = existing_tiltfile.with_file_name(format!("Tiltfile.backup.{}", timestamp));
         fs::rename(&existing_tiltfile, &backup_path)?;
     }
 
