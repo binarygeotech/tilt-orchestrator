@@ -1,9 +1,9 @@
+use chrono::Local;
 use std::collections::HashMap;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
-use chrono::Local;
 
 // mod backend;
 pub mod paths;
@@ -265,17 +265,6 @@ pub fn is_valid_project(path: &str) -> bool {
     project_file(project_path).exists()
 }
 
-/// Create a timestamped backup path that doesn't overwrite existing backups
-fn create_timestamped_backup_path(original_path: &Path) -> PathBuf {
-    let timestamp = Local::now().format("%Y%m%d_%H%M%S");
-    let parent = original_path.parent().unwrap_or(Path::new("."));
-    let name = original_path
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("untitled");
-    parent.join(format!("{}.backup.{}", name, timestamp))
-}
-
 /// Initialize an existing directory as a Tilt Orchestrator project
 pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Project, AppError> {
     let project_path = Path::new(path);
@@ -296,13 +285,14 @@ pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Pr
     if existing_tiltfile.exists() {
         let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
         // This will produce something like "Tiltfile.backup.20250105_123045"
-        let backup_path = existing_tiltfile.with_file_name(format!("Tiltfile.backup.{}", timestamp));
+        let backup_path =
+            existing_tiltfile.with_file_name(format!("Tiltfile.backup.{}", timestamp));
         fs::rename(&existing_tiltfile, &backup_path)?;
     }
 
     // Backup existing tilt directory if it exists
     let existing_tilt_dir = project_path.join("tilt");
-    if existing_tilt_dir.exists() && !existing_tilt_dir.join("..").join("project.json").exists() {
+    if existing_tilt_dir.exists() && !project_path.join("project.json").exists() {
         let timestamp = Local::now().format("%Y%m%d_%H%M%S").to_string();
         // This will produce a sibling directory like "tilt.backup.20250105_123045"
         let backup_dir_name = format!("tilt.backup.{}", timestamp);
