@@ -366,7 +366,7 @@ pub async fn stop_tilt(
                 .args(["/F", "/PID", &pid.to_string()])
                 .status()
                 .await
-                .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string()))?;
+                .map_err(|e| io::Error::other(e.to_string()))?;
         }
 
         write_state(

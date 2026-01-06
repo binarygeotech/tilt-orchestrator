@@ -34,6 +34,7 @@ function App() {
   const [currentProject, setCurrentProject] = useState<Project | null>(null)
   const [hasCheckedTilt, setHasCheckedTilt] = useState(false)
   const [pendingProjectPath, setPendingProjectPath] = useState<string>("")
+  const [hasValidTilt, setHasValidTilt] = useState<boolean>(false)
 
   useEffect(() => {
     // Close splashscreen when React app is ready
@@ -56,6 +57,7 @@ function App() {
       if (state.preferences.tilt_path) {
         try {
           await validateExecutablePath(state.preferences.tilt_path)
+          setHasValidTilt(true)
           // Valid tilt path
         } catch (error) {
           // Invalid tilt path - show settings
@@ -163,6 +165,15 @@ function App() {
     setCurrentProject(null)
   }
 
+  const handleBackToLandingFromSettings = async () => {
+    if (!hasValidTilt) {
+      setHasCheckedTilt(false)
+      await checkTiltConfiguration()
+    }
+
+    handleBackToLanding()
+  }
+
   return (
     <AppStateProvider>
       <ThemeProvider>
@@ -191,7 +202,7 @@ function App() {
               />
             )}
             {currentScreen === "settings" && (
-              <Settings onBack={handleBackToLanding} />
+              <Settings onBack={handleBackToLandingFromSettings} />
             )}
             {currentScreen === "about" && (
               <About onBack={handleBackToLanding} />
