@@ -300,7 +300,7 @@ pub fn initialize_existing_project(path: &str, services_path: &str) -> Result<Pr
 
     // Backup existing tilt directory if it exists
     let existing_tilt_dir = project_path.join("tilt");
-    if existing_tilt_dir.exists() && !existing_tilt_dir.join("..").join("project.json").exists() {
+    if existing_tilt_dir.exists() && !project_path.join("project.json").exists() {
         let backup_path = create_timestamped_backup_path(&existing_tilt_dir);
         fs::rename(&existing_tilt_dir, &backup_path)?;
     }
