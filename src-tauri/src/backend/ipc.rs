@@ -30,6 +30,7 @@ pub async fn handle_ipc(
             struct Args {
                 path: String,
             }
+
             let args: Args = serde_json::from_value(args)?;
             let flags = ["--version", "version"];
             let mut last_err = None;
@@ -43,7 +44,7 @@ pub async fn handle_ipc(
                     }
                 }
             }
-            Err(last_err.unwrap())
+            Err(last_err.unwrap().into())
         }
 
         "generateTiltfiles" => {

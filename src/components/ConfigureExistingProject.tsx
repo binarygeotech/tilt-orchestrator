@@ -27,9 +27,33 @@ export default function ConfigureExistingProject({
     setProjectName(dirName)
   }, [projectPath])
 
+  const validateServicesPath = (path: string): string | null => {
+    const trimmed = path.trim()
+    if (!trimmed) {
+      return "Services path cannot be empty"
+    }
+
+    // Disallow absolute paths (POSIX and Windows)
+    if (trimmed.startsWith("/") || /^[A-Za-z]:[\\/]/.test(trimmed)) {
+      return "Services path must be a relative path"
+    }
+
+    // Disallow parent directory traversal
+    if (trimmed.includes("..")) {
+      return "Services path cannot contain parent directory references ('..')"
+    }
+
+    // Allow only a safe subset of characters
+    if (!/^[a-zA-Z0-9_\-/]+$/.test(trimmed)) {
+      return "Services path contains invalid characters"
+    }
+    return null
+  }
+
   const handleInitialize = async () => {
-    if (!servicesPath.trim()) {
-      setError("Services path cannot be empty")
+    const validationError = validateServicesPath(servicesPath)
+    if (validationError) {
+      setError(validationError)
       return
     }
 
@@ -39,7 +63,9 @@ export default function ConfigureExistingProject({
     try {
       const project = await initializeExistingProject(projectPath, servicesPath)
       const normalizedProject: Project =
-        typeof project === "string" ? (JSON.parse(project) as Project) : (project as Project)
+        typeof project === "string"
+          ? (JSON.parse(project) as Project)
+          : (project as Project)
       onInitialized(normalizedProject)
     } catch (err) {
       setError(

@@ -68,7 +68,9 @@ export default function LandingScreen({
           setTiltInstallation(installation)
         } else {
           installation = {
+            path: "",
             installed: false,
+            version: "",
           }
         }
       }
