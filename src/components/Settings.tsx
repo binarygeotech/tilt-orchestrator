@@ -88,11 +88,22 @@ export default function Settings({ onBack }: SettingsProps) {
 
     setValidatingTilt(true)
     try {
-      const _result = await validateExecutablePath(path)
-      const result = (_result as any).includes(":")
-        ? JSON.parse(_result as any)
-        : { valid: false, version: null }
+      const rawResult = await validateExecutablePath(path)
+      let result: any
 
+      if (typeof rawResult === "string") {
+        try {
+          result = JSON.parse(rawResult)
+        } catch (parseError: any) {
+          // Surface parsing issues to the existing error handler
+          throw new Error(
+            `Failed to parse tilt validation result: ${String(rawResult)}`
+          )
+        }
+      } else {
+        // Assume a non-string response is already a parsed object
+        result = rawResult
+      }
       setTiltValidation({ valid: true, version: result.version })
       setCurrentTiltVersion(result.version)
       return { valid: true, version: result.version }
