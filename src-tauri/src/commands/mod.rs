@@ -45,8 +45,12 @@ pub fn remove_recent_project_cmd(app: tauri::AppHandle, path: String) -> Result<
 }
 
 #[tauri::command]
-pub async fn call_backend(command: &str, args: serde_json::Value) -> Result<String, String> {
-    handle_ipc(command, args)
+pub async fn call_backend(
+    app: tauri::AppHandle,
+    command: &str,
+    args: serde_json::Value,
+) -> Result<String, String> {
+    handle_ipc(app, command, args)
         .await
         .map(|val| val.to_string())
         .map_err(|e| e.to_string())

@@ -184,16 +184,46 @@ describe("ProjectView", () => {
       expect(screen.getByRole("button", { name: /show/i })).toBeInTheDocument()
     })
 
-    it("should fetch and display logs", async () => {
+    it("should display logs when fetched", async () => {
       const mockLogs = JSON.stringify({ logs: ["Log line 1", "Log line 2"] })
+
+      // Mock Tilt state to be running after start
+      let tiltState = "stopped"
+      vi.mocked(api.getTiltState).mockImplementation(async () => tiltState)
       vi.mocked(api.getTiltLogs).mockResolvedValue(mockLogs)
+      vi.mocked(api.startTilt).mockImplementation(async () => {
+        tiltState = "running"
+      })
 
       renderComponent()
 
-      await waitFor(() => {
-        expect(screen.getByText(/Log line 1/)).toBeInTheDocument()
-        expect(screen.getByText(/Log line 2/)).toBeInTheDocument()
+      // Start Tilt
+      const startButtons = screen.getAllByRole("button", {
+        name: /start tilt/i,
       })
+      fireEvent.click(startButtons[0])
+
+      // Wait for Tilt to start
+      await waitFor(() => {
+        expect(api.startTilt).toHaveBeenCalledWith(mockProject, "dev")
+      })
+
+      // Wait for status check to show running state
+      await waitFor(
+        () => {
+          expect(api.getTiltState).toHaveBeenCalled()
+        },
+        { timeout: 3000 }
+      )
+
+      // Wait for logs to be fetched and displayed
+      await waitFor(
+        () => {
+          expect(screen.getByText(/Log line 1/)).toBeInTheDocument()
+          expect(screen.getByText(/Log line 2/)).toBeInTheDocument()
+        },
+        { timeout: 5000 }
+      )
     })
   })
 

@@ -15,5 +15,7 @@ export interface AppState {
   preferences: {
     auto_open_last_project: boolean
     default_editor?: string | null
+    tilt_path?: string | null
+    editor_path?: string | null
   }
 }

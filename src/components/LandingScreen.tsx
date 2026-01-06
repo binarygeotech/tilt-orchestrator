@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react"
-import { removeRecentProject } from "@/api/api"
+import { checkTiltInstalled, removeRecentProject } from "@/api/api"
 import { useAppState } from "@/providers/AppStateProvider"
 import { invoke } from "@tauri-apps/api/core"
 import { ask, message, open } from "@tauri-apps/plugin-dialog"
 import { Clock, FolderOpen, Info, Plus, Settings, Trash2 } from "lucide-react"
 
 import { AppState, RecentProject } from "@/types/app"
+import { TiltInstallation } from "@/types/tilt"
 
 import { Button } from "./ui/button"
 import {
@@ -33,6 +34,7 @@ export default function LandingScreen({
   const [appState, setAppState] = useState<AppState | null>(null)
   const [autoOpen, setAutoOpen] = useState(false)
   const { state: contextState, setAppState: setState } = useAppState()
+  const [tiltInstallation, setTiltInstallation] = useState<TiltInstallation>()
 
   useEffect(() => {
     loadAppState()
@@ -55,15 +57,40 @@ export default function LandingScreen({
 
   const loadAppState = async () => {
     try {
-      const state = await invoke<AppState>("get_app_state")
-      setAppState(state)
-      setAutoOpen(state.preferences.auto_open_last_project)
+      let installation: TiltInstallation
 
-      setState({
-        recent_projects: state.recent_projects,
-        preferences: state.preferences,
-        app_started: contextState.app_started || false,
-      })
+      if (tiltInstallation) {
+        installation = tiltInstallation
+      } else {
+        const response: any = await checkTiltInstalled()
+        if (typeof response === "string") {
+          installation = JSON.parse(response)
+          setTiltInstallation(installation)
+        } else {
+          installation = {
+            path: "",
+            installed: false,
+            version: "",
+          }
+        }
+      }
+
+      if (installation.installed) {
+        const state = await invoke<AppState>("get_app_state")
+        setAppState(state)
+        setAutoOpen(state.preferences.auto_open_last_project)
+
+        setState({
+          recent_projects: state.recent_projects,
+          preferences: state.preferences,
+          app_started: contextState.app_started || false,
+        })
+      } else {
+        // await message("Tilt is not installed. Please install it from https://docs.tilt.dev/install.html", {
+        //     title: "Tilt Not found",
+        //     kind: "warning"
+        // })
+      }
     } catch (error) {
       console.error("Failed to load app state:", error)
     }

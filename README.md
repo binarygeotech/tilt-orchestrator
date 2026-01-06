@@ -19,6 +19,7 @@
 
 - [About](#about)
 - [Features](#features)
+- [Screenshots](#screenshots)
 - [How It Works](#how-it-works)
 - [Prerequisites](#prerequisites)
 - [System Setup for Tilt](#system-setup-for-tilt)
@@ -50,10 +51,12 @@ Tilt Orchestrator is a cross-platform desktop application built with Tauri that 
 ## ✨ Features
 
 ### Project Management
-- 🆕 Create new projects with customizable workspace and services paths
-- 📂 Open existing projects with recent project history
-- 🔄 Auto-load most recent project on startup (configurable)
-- 💾 Persistent state management
+- 🆕 **Create New Projects**: Customizable workspace and services paths
+- 📂 **Open Existing Projects**: Recent project history with quick access
+- 🔄 **Initialize Existing Directories**: Convert any directory into a Tilt Orchestrator project
+- 💾 **Auto-load Last Project**: Configurable auto-open on startup
+- 📌 **System Tray Integration**: Quick access to recent projects and controls
+- 🔐 **Persistent State**: Settings and preferences saved automatically
 
 ### Service Configuration
 - 🐳 **Docker**: Configure context and Dockerfile paths
@@ -61,26 +64,33 @@ Tilt Orchestrator is a cross-platform desktop application built with Tauri that 
 - ⎈ **Helm**: Specify charts and namespaces
 - 🔧 **Kustomize**: Set kustomization paths
 - 🔗 **Multi-Deployment**: Services can use multiple deployment types simultaneously
+- 📦 **Dependency Management**: Visual service dependency graph
 
 ### Environment Management
-- 🌍 Multiple environments (dev, staging, production)
-- 🔐 Shared and per-service environment variables
-- 📝 Visual and JSON editor for environment variables
-- 📄 Auto-generated `.env` files and Kubernetes ConfigMaps
+- 🌍 **Multiple Environments**: dev, staging, production with easy switching
+- 🔐 **Environment Variables**: Shared and per-service configuration
+- 📝 **Dual Editors**: Visual form and JSON editor for environment variables
+- 📄 **Auto-generation**: `.env` files and Kubernetes ConfigMaps created automatically
 
 ### Tilt Integration
-- ▶️ Start/Stop Tilt processes
-- 🔄 Restart Tilt with one click
-- 📊 Real-time status monitoring
-- 📟 Built-in terminal for Tilt logs
-- 🔁 Auto-refresh log viewer
+- ▶️ **Process Control**: Start/Stop/Restart Tilt with one click
+- 📊 **Real-time Monitoring**: Live status updates and log streaming
+- 📟 **Built-in Terminal**: View Tilt logs with auto-scroll and refresh
+- 🌐 **Web UI Integration**: Direct link to Tilt's web interface
+- ⚙️ **Tiltfile Generation**: Automatic generation per environment
+
+### Configuration & Settings
+- 🛠️ **Tilt Path Configuration**: Auto-detect or manually configure Tilt executable
+- 📝 **Editor Integration**: Configure your preferred code editor (VS Code, IntelliJ, etc.)
+- ✅ **Path Validation**: Real-time validation of executable paths with version checking
+- 🎨 **Theme Support**: Dark/Light mode with system sync
+- 📋 **Installation Guidance**: Built-in instructions for Tilt installation
 
 ### Development Tools
-- 🎨 Dark/Light theme support
-- 🖥️ Open services in code editor
-- 🌳 Git repository cloning with branch selection
-- 🔧 Customizable editor preferences
-- 📋 Template-based file generation
+- 🌳 **Git Integration**: Clone repositories with branch selection
+- 🖥️ **Quick Editor Access**: Open services directly in your configured editor
+- 📋 **Template Engine**: Generate files from customizable templates
+- 🔄 **Hot Reload**: Regenerate Tiltfiles on-the-fly
 
 ---
 
@@ -116,38 +126,79 @@ Configure new services with deployment types and environment variables.
 
 ![Add Service](screenshots/add_servcice_screen.png)
 
+### Settings
+Configure Tilt executable path and editor preferences.
+
+![Settings](screenshots/settings.png)
+
+### Initialize Existing Directory
+Convert existing projects into Tilt Orchestrator projects.
+
+![Initialize Existing Directory](screenshots/initialize_existing_directory.png)
+
 ---
 
 ## 🔄 How It Works
 
-1. **Create a Project**: Define your project name, workspace location, and services directory
-2. **Add Services**: Configure services with deployment types, repository URLs, and environment variables
-3. **Generate Configuration**: Tilt Orchestrator automatically generates:
-   - Root Tiltfile
-   - Service-specific Tiltfiles
-   - Kubernetes manifests (deployments, configmaps, services)
-   - Environment files
-4. **Start Tilt**: Launch Tilt from the UI and monitor logs in real-time
-5. **Manage & Update**: Edit services, update configurations, and regenerate files as needed
+### Getting Started
 
-### File Structure
+1. **Configure Tilt**: On first launch, configure the Tilt executable path (auto-detected or manual)
+2. **Create or Initialize a Project**: 
+   - Create a new project from scratch, or
+   - Initialize an existing directory (automatically backs up existing Tiltfiles)
+3. **Add Services**: Configure services with deployment types, repository URLs, and environment variables
+4. **Generate Configuration**: Tilt Orchestrator automatically generates:
+   - Root Tiltfile and environment-specific Tiltfiles
+   - Service-specific Tiltfiles (in each service directory)
+   - Kubernetes manifests (deployments, configmaps, services)
+   - Environment files (`.env` files and ConfigMaps)
+5. **Start Tilt**: Launch Tilt from the UI and monitor logs in real-time
+6. **Manage & Update**: Edit services, update configurations, and regenerate files as needed
+
+### First-Time Setup
+
+When you launch Tilt Orchestrator for the first time:
+- The app checks if Tilt is installed and configured
+- If not found, you'll be guided to the Settings page
+- Configure your Tilt executable path (auto-detection available)
+- Optionally configure your preferred code editor
+- Start creating or opening projects!
+
+### Project File Structure
+
+When you create or initialize a project, Tilt Orchestrator generates:
 
 ```
 your-project/
 ├── Tiltfile                          # Root Tiltfile (generated)
-├── services/                          # Services directory
+├── services/                         # Services directory (configurable name)
 │   ├── service-a/
-│   │   ├── service-a.tilt.py         # Service Tiltfile
+│   │   ├── Tiltfile                  # Service-specific Tiltfile
 │   │   ├── .env.dev                  # Environment variables
 │   │   ├── k8s/
-│   │   │   └── service-a-deployment.yaml  # K8s manifests
+│   │   │   ├── deployment.yaml       # K8s deployment
+│   │   │   ├── configmap.yaml        # K8s configmap
+│   │   │   └── service.yaml          # K8s service
 │   │   └── ... (your service code)
 │   └── service-b/
 │       └── ...
+├── tilt/                             # Tilt configuration per environment
+│   ├── dev/
+│   │   └── Tiltfile                  # Dev environment Tiltfile
+│   ├── staging/
+│   │   └── Tiltfile                  # Staging environment Tiltfile
+│   └── prod/
+│       └── Tiltfile                  # Production environment Tiltfile
+├── environments/                     # Environment configurations
+│   ├── dev.json
+│   ├── staging.json
+│   └── prod.json
 └── .tooling/
-    ├── project.json                   # Project configuration
-    └── dev_tilt.log                   # Tilt logs
+    ├── project.json                  # Project metadata
+    └── dev_tilt.log                  # Tilt output logs
 ```
+
+**Note**: When initializing existing directories, any existing `Tiltfile` or `tilt/` directory is automatically backed up with a `.backup` extension.
 
 ---
 
@@ -297,54 +348,71 @@ No additional environment configuration is required. The application uses local 
 
 ```
 tilt-orchestrator/
-├── src/                          # Frontend source code
-│   ├── components/               # React components
-│   │   ├── AddServiceDialog.tsx  # Service creation/editing
-│   │   ├── CreateProjectForm.tsx # Project creation form
-│   │   ├── LandingScreen.tsx     # Home screen
-│   │   ├── ProjectView.tsx       # Project dashboard
-│   │   ├── ProjectManagement.tsx # Project editor
-│   │   ├── ServiceCard.tsx       # Service display
-│   │   ├── Settings.tsx          # App settings
-│   │   ├── ThemeProvider.tsx     # Theme management
-│   │   └── ui/                   # Shadcn/ui components
-│   ├── providers/                # Context providers
-│   ├── types/                    # TypeScript types
-│   ├── styles/                   # Global styles
-│   ├── api.ts                    # Tauri IPC API
-│   └── App.tsx                   # Root component
+├── src/                              # Frontend source code
+│   ├── components/                   # React components
+│   │   ├── AddServiceDialog.tsx      # Service creation/editing
+│   │   ├── ConfigureExistingProject.tsx # Initialize existing directory
+│   │   ├── CreateProjectForm.tsx     # Project creation form
+│   │   ├── LandingScreen.tsx         # Home screen with recent projects
+│   │   ├── ProjectView.tsx           # Project dashboard
+│   │   ├── ProjectManagement.tsx     # Project editor
+│   │   ├── ServiceCard.tsx           # Service display
+│   │   ├── Settings.tsx              # App settings (Tilt & Editor config)
+│   │   ├── ThemeProvider.tsx         # Theme management
+│   │   ├── TiltControls.tsx          # Tilt process controls
+│   │   └── ui/                       # Shadcn/ui components
+│   ├── providers/                    # Context providers
+│   │   ├── AppStateProvider.tsx      # Application state
+│   │   └── TrayIconProvider.tsx      # System tray integration
+│   ├── types/                        # TypeScript types
+│   ├── api/                          # Tauri IPC API
+│   │   └── api.ts                    # API functions
+│   ├── tests/                        # Frontend tests
+│   │   ├── api.test.ts               # API tests
+│   │   └── components/               # Component tests
+│   ├── App.tsx                       # Root component
+│   └── main.tsx                      # Entry point
 │
-├── src-tauri/                    # Backend source code
+├── src-tauri/                        # Backend source code
 │   ├── src/
-│   │   ├── app_state/            # Application state
-│   │   │   ├── model.rs          # State models
-│   │   │   ├── store.rs          # State persistence
+│   │   ├── app_state/                # Application state
+│   │   │   ├── model.rs              # State models (preferences, recent projects)
+│   │   │   ├── store.rs              # State persistence
 │   │   │   └── mod.rs
-│   │   ├── backend/              # Core backend logic
-│   │   │   ├── generator.rs      # Tiltfile generation
-│   │   │   ├── git.rs            # Git operations
-│   │   │   ├── ipc.rs            # IPC handlers
-│   │   │   ├── tilt_manager.rs   # Tilt process management
-│   │   │   ├── dependency_graph.rs # Service dependencies
-│   │   │   ├── errors.rs         # Error types
+│   │   ├── backend/                  # Core backend logic
+│   │   │   ├── generator.rs          # Tiltfile generation
+│   │   │   ├── git.rs                # Git operations
+│   │   │   ├── ipc.rs                # IPC command handlers
+│   │   │   ├── tilt_manager.rs       # Tilt process management
+│   │   │   ├── project_manager.rs    # Project CRUD operations
+│   │   │   ├── dependency_graph.rs   # Service dependencies
+│   │   │   ├── ports.rs              # Port management
+│   │   │   ├── errors.rs             # Error types
 │   │   │   └── mod.rs
-│   │   ├── project/              # Project management
-│   │   │   └── mod.rs            # CRUD operations
-│   │   ├── commands/             # Tauri commands
-│   │   ├── lib.rs                # Library entry
-│   │   └── main.rs               # Application entry
-│   ├── Cargo.toml                # Rust dependencies
-│   └── tauri.conf.json           # Tauri configuration
+│   │   ├── project/                  # Project operations
+│   │   │   └── mod.rs                # Create, open, initialize projects
+│   │   ├── lib.rs                    # Library entry
+│   │   └── main.rs                   # Application entry
+│   ├── Cargo.toml                    # Rust dependencies
+│   ├── tauri.conf.json               # Tauri configuration
+│   └── capabilities/                 # Security permissions
+│       └── default.json              # Shell command permissions
 │
-├── tests/                        # Test files
-│   ├── api.test.ts               # API tests
-│   └── components/               # Component tests
+├── docs/                             # Documentation
+│   ├── ADD_EXISTING_PROJECT_FEATURE.md
+│   ├── TILT_INSTALLATION_CHECK.md
+│   ├── TILT_EDITOR_PATH_CONFIGURATION.md
+│   └── README_TESTS.md
 │
-├── package.json                  # Node dependencies
-├── tsconfig.json                 # TypeScript config
-├── tailwind.config.js            # Tailwind config
-├── vite.config.ts                # Vite config
-└── vitest.config.ts              # Vitest config
+├── screenshots/                      # Application screenshots
+├── .github/                          # GitHub workflows and templates
+├── package.json                      # Node dependencies
+├── tsconfig.json                     # TypeScript config
+├── tailwind.config.js                # Tailwind config
+├── vite.config.ts                    # Vite config
+├── vitest.config.ts                  # Vitest config
+├── README.md                         # This file
+└── CHANGELOG.md                      # Version history
 ```
 
 ### Backend Architecture
@@ -489,18 +557,19 @@ cargo tarpaulin --out Html
 
 Frontend tests cover:
 - API functions (IPC calls)
-- Component rendering
-- User interactions
-- State management
+- Component rendering and user interactions
+- State management and context providers
+- Theme switching and tray integration
 
 Backend tests cover:
-- Template rendering
-- Tiltfile generation
+- Template rendering and Tiltfile generation
 - Kubernetes manifest creation
-- Project CRUD operations
-- Tilt process management
+- Project CRUD operations (create, open, initialize)
+- Tilt process management (start, stop, restart)
+- Path validation and configuration
+- Git operations and repository cloning
 
-See `README_TESTS.md` for detailed testing documentation.
+See [docs/README_TESTS.md](docs/README_TESTS.md) for detailed testing documentation.
 
 ---
 
@@ -672,10 +741,13 @@ SOFTWARE.
 
 ## 📞 Support
 
-- 📖 Documentation: [GitHub Wiki](https://github.com/yourusername/tilt-orchestrator/wiki)
-- 🐛 Bug Reports: [GitHub Issues](https://github.com/yourusername/tilt-orchestrator/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/yourusername/tilt-orchestrator/discussions)
-- 📧 Email: support@tilt-orchestrator.dev
+- 📖 **Feature Documentation**: See [docs/](docs/) directory for detailed guides
+  - [Initialize Existing Projects](docs/ADD_EXISTING_PROJECT_FEATURE.md)
+  - [Tilt Configuration](docs/TILT_INSTALLATION_CHECK.md)
+  - [Editor Integration](docs/TILT_EDITOR_PATH_CONFIGURATION.md)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/binarygeotech/tilt-orchestrator/issues)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/binarygeotech/tilt-orchestrator/discussions)
+- 📋 **Tests**: [Testing Documentation](docs/README_TESTS.md)
 
 ---
 

@@ -1,7 +1,23 @@
 import { invoke } from "@tauri-apps/api/core"
 
 import { Project } from "../types/project"
-import { TiltStatus } from "../types/tilt"
+import { TiltInstallation, TiltStatus } from "../types/tilt"
+
+export async function checkTiltInstalled(): Promise<TiltInstallation> {
+  return invoke("call_backend", {
+    command: "checkTiltInstalled",
+    args: {},
+  }) as Promise<TiltInstallation>
+}
+
+export async function validateExecutablePath(
+  path: string
+): Promise<{ valid: boolean; version: string }> {
+  return invoke("call_backend", {
+    command: "validateExecutablePath",
+    args: { path },
+  }) as Promise<{ valid: boolean; version: string }>
+}
 
 export async function createProject(
   name: string,
@@ -22,6 +38,25 @@ export async function openProject(workspace_path: string): Promise<any> {
   return invoke("call_backend", {
     command: "openProject",
     args: { workspace_path },
+  }) as Promise<Project>
+}
+
+export async function isValidProject(
+  path: string
+): Promise<{ valid: boolean }> {
+  return invoke("call_backend", {
+    command: "isValidProject",
+    args: { path },
+  }) as Promise<{ valid: boolean }>
+}
+
+export async function initializeExistingProject(
+  path: string,
+  servicesPath: string
+): Promise<Project> {
+  return invoke("call_backend", {
+    command: "initializeExistingProject",
+    args: { path, services_path: servicesPath },
   }) as Promise<Project>
 }
 
