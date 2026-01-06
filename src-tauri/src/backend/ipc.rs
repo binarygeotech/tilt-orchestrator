@@ -31,13 +31,19 @@ pub async fn handle_ipc(
                 path: String,
             }
             let args: Args = serde_json::from_value(args)?;
-            let param: String = if args.path.clone().contains("tilt") {
-                "version".to_string()
-            } else {
-                "--version".to_string()
-            };
-            let version = validate_executable_path(&app, &args.path, Some(&param)).await?;
-            Ok(serde_json::json!({ "valid": true, "version": version }))
+            let flags = ["--version", "version"];
+            let mut last_err = None;
+            for flag in flags {
+                match validate_executable_path(&app, &args.path, Some(flag)).await {
+                    Ok(version) => {
+                        return Ok(serde_json::json!({ "valid": true, "version": version }));
+                    }
+                    Err(e) => {
+                        last_err = Some(e);
+                    }
+                }
+            }
+            Err(last_err.unwrap())
         }
 
         "generateTiltfiles" => {
